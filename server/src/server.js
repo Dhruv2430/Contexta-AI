@@ -15,5 +15,6 @@ process.on("unhandledRejection", (reason) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`Server running on port ${config.port}`);
+  console.log(`Server running on port ${config.port} [${config.isProduction ? "production" : "development"}]`);
+  console.log(`CORS allowed origins: ${config.isProduction ? config.corsOrigins.join(", ") : "all"}`);
 });

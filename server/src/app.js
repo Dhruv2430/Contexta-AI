@@ -26,8 +26,13 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 // CORS: restrict origins in production, allow all in dev
 const corsOptions = {
   origin: config.isProduction
-    ? config.corsOrigins
-    : true, // Allow all origins in development
+    ? (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Render health checks)
+        if (!origin) return callback(null, true);
+        if (config.corsOrigins.includes(origin)) return callback(null, true);
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    : true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
