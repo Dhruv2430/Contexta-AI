@@ -1,5 +1,8 @@
 import fs from "fs/promises";
-import pdf from "pdf-parse";
+
+import * as pdfjs from "pdf-parse";
+
+
 
 import Document from "../models/Document.js";
 
@@ -56,7 +59,7 @@ export const uploadDocument = async (req, res) => {
     let pageCount = 0;
 
     try {
-      const result = await pdf(fileBuffer);
+      const result = await pdfjs.default(fileBuffer);
 
       extractedText = result.text || "";
       pageCount = result.numpages || 0;
