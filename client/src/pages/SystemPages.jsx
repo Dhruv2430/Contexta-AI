@@ -682,12 +682,193 @@ export const WidgetEmbedPage = () => (
 );
 
 export const SettingsPage = () => {
+  const { user } = useAuth();
+  const { data, error, loading } = useSystemData("/system/api-keys");
+  const defaults = useMemo(() => ({
+    companyName: user?.name ? `${user.name}'s Company` : "My Company",
+    supportEmail: user?.email || "",
+    widgetTitle: "Customer Support",
+    responseMode: "Local-first",
+    monthlyLimit: "200",
+  }), [user]);
+  const [settings, setSettings] = useState(() => {
+    try {
+      return { ...defaults, ...JSON.parse(localStorage.getItem("nexus_settings") || "{}") };
+    } catch {
+      return defaults;
+    }
+  });
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState("");
+
+  useEffect(() => {
+    setSettings((current) => ({ ...defaults, ...current }));
+  }, [defaults]);
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+  const widgetUrl = `${origin}/widget/${user?.id || user?._id || "YOUR_COMPANY_ID"}`;
+
+  const updateField = (field, value) => {
+    setSettings((current) => ({ ...current, [field]: value }));
+    setSaved(false);
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem("nexus_settings", JSON.stringify(settings));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+  };
+
+  const resetSettings = () => {
+    localStorage.removeItem("nexus_settings");
+    setSettings(defaults);
+    setSaved(false);
+  };
+
+  const copy = async (value, type) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(type);
+    setTimeout(() => setCopied(""), 1500);
+  };
+
   return (
-    <PageShell active="Settings" title="Settings" subtitle="Local app URLs and widget configuration.">
+    <PageShell active="Settings" title="Settings" subtitle="Workspace preferences, local URLs, and provider readiness.">
+      <ErrorBox message={error} />
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        <section className="card rounded-2xl p-5 lg:col-span-2">
+          <Settings className="w-5 h-5 text-accent-500 mb-4" />
+          <h2 className="text-sm font-semibold text-base-800">Workspace Settings</h2>
+          <p className="mt-1 text-sm text-base-500">These preferences are saved locally for the demo dashboard.</p>
+
+          <div className="mt-5 grid sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs font-medium text-base-500">Company name</span>
+              <input
+                type="text"
+                value={settings.companyName}
+                onChange={(event) => updateField("companyName", event.target.value)}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl border border-base-200 text-sm focus:outline-none focus:border-accent-400"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-base-500">Support email</span>
+              <input
+                type="email"
+                value={settings.supportEmail}
+                onChange={(event) => updateField("supportEmail", event.target.value)}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl border border-base-200 text-sm focus:outline-none focus:border-accent-400"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-base-500">Widget title</span>
+              <input
+                type="text"
+                value={settings.widgetTitle}
+                onChange={(event) => updateField("widgetTitle", event.target.value)}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl border border-base-200 text-sm focus:outline-none focus:border-accent-400"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-base-500">Monthly free request limit</span>
+              <input
+                type="number"
+                min="1"
+                value={settings.monthlyLimit}
+                onChange={(event) => updateField("monthlyLimit", event.target.value)}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl border border-base-200 text-sm focus:outline-none focus:border-accent-400"
+              />
+            </label>
+          </div>
+
+          <div className="mt-5">
+            <p className="text-xs font-medium text-base-500 mb-2">Project mode</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {["Local-first", "Cloud-ready"].map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => updateField("responseMode", mode)}
+                  className={`text-left rounded-xl border p-4 transition-colors ${settings.responseMode === mode ? "border-accent-300 bg-accent-50" : "border-base-100 hover:bg-base-50"}`}
+                >
+                  <p className="text-sm font-semibold text-base-800">{mode}</p>
+                  <p className="mt-1 text-xs text-base-500">
+                    {mode === "Local-first" ? "Use local uploads, MongoDB, and FAISS to control cost." : "Prepared for S3, EC2, and paid billing later."}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button type="button" onClick={saveSettings} className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-400 text-white rounded-xl text-sm font-semibold hover:bg-accent-500">
+              <CheckCircle className="w-4 h-4" />
+              {saved ? "Saved" : "Save settings"}
+            </button>
+            <button type="button" onClick={resetSettings} className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-base-200 text-base-600 rounded-xl text-sm font-semibold hover:bg-base-50">
+              Reset defaults
+            </button>
+          </div>
+        </section>
+
+        <section className="card rounded-2xl p-5">
+          <Shield className="w-5 h-5 text-green-500 mb-4" />
+          <h2 className="text-sm font-semibold text-base-800">Provider Status</h2>
+          {loading ? (
+            <div className="mt-5 flex items-center gap-2 text-sm text-base-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Checking configuration
+            </div>
+          ) : (
+            <div className="mt-5 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-base-600">Gemini API</span>
+                <StatusBadge status={data?.gemini?.configured ? "configured" : "missing"} />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-base-600">MongoDB</span>
+                <StatusBadge status={data?.database?.configured ? "configured" : "missing"} />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-base-600">JWT Auth</span>
+                <StatusBadge status={data?.jwt?.configured ? "configured" : "missing"} />
+              </div>
+              <div className="pt-4 border-t border-base-100">
+                <p className="text-xs text-base-400">Chat model</p>
+                <p className="mt-1 text-sm font-semibold text-base-800 break-all">{data?.gemini?.chatModel}</p>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+
       <section className="card rounded-2xl p-5">
-        <Settings className="w-5 h-5 text-accent-500 mb-4" />
-        <h2 className="text-sm font-semibold text-base-800">Project Settings</h2>
-        <p className="mt-1 text-sm text-base-500">Widget installation code is available from the Widget Embed section in the sidebar.</p>
+        <Server className="w-5 h-5 text-accent-500 mb-4" />
+        <h2 className="text-sm font-semibold text-base-800">Local App URLs</h2>
+        <div className="mt-5 space-y-3">
+          {[
+            { label: "Frontend", value: origin, type: "frontend" },
+            { label: "Backend API", value: apiUrl, type: "api" },
+            { label: "Widget URL", value: widgetUrl, type: "widget" },
+          ].map((item) => (
+            <div key={item.type} className="flex flex-col lg:flex-row lg:items-center gap-3 rounded-xl border border-base-100 p-3">
+              <div className="lg:w-32 shrink-0">
+                <p className="text-xs font-semibold text-base-400 uppercase">{item.label}</p>
+              </div>
+              <code className="flex-1 overflow-x-auto text-xs text-base-700">{item.value}</code>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => copy(item.value, item.type)} className="inline-flex items-center justify-center gap-2 px-3 py-2 border border-base-200 text-base-600 rounded-lg text-xs font-semibold hover:bg-base-50">
+                  {copied === item.type ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied === item.type ? "Copied" : "Copy"}
+                </button>
+                <button type="button" onClick={() => window.open(item.value, "_blank", "noopener,noreferrer")} className="inline-flex items-center justify-center px-3 py-2 border border-base-200 text-base-600 rounded-lg text-xs font-semibold hover:bg-base-50">
+                  Open
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </PageShell>
   );
