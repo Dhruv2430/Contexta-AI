@@ -31,12 +31,29 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (formData.password !== formData.confirmPassword) { setError("Passwords do not match"); return; }
-    if (formData.password.length < 6) { setError("Password must be at least 6 characters"); return; }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
     setIsLoading(true);
-    try { await signup(formData.name, formData.email, formData.password); }
-    catch (err) { setError(err.response?.data?.message || "Something went wrong. Please try again."); }
-    finally { setIsLoading(false); }
+    try {
+      await signup(formData.name, formData.email, formData.password);
+    } catch (err) {
+      console.error("Signup request failed:", err);
+      if (!err.response) {
+        setError(
+          "Could not connect to the API server. Please ensure the backend server is running locally on http://localhost:5001 or check your network status."
+        );
+      } else {
+        setError(err.response.data?.message || "Failed to create account. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputCls = "w-full pl-10 pr-4 py-2.5 rounded-xl bg-base-50 border border-base-200 text-base-900 text-sm placeholder-base-400 outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-100 transition-all duration-300";
@@ -52,7 +69,7 @@ const SignupPage = () => {
         <div className="relative z-10 max-w-md">
           <div className="flex items-center gap-2 mb-12">
             <div className="w-8 h-8 rounded-lg bg-accent-400 flex items-center justify-center"><Bot className="w-5 h-5 text-white" /></div>
-            <span className="text-lg font-bold text-white">Nexus AI</span>
+            <span className="text-lg font-bold text-white">Contexta-AI</span>
           </div>
           <h2 className="text-3xl font-bold text-white leading-tight mb-4">
             Start building <span className="text-accent-400">AI-powered support</span> in minutes.
@@ -81,7 +98,7 @@ const SignupPage = () => {
         <div className="w-full max-w-sm animate-fade-in">
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-accent-400 flex items-center justify-center"><Bot className="w-5 h-5 text-white" /></div>
-            <span className="text-lg font-bold">Nexus AI</span>
+            <span className="text-lg font-bold">Contexta-AI</span>
           </div>
 
           <h1 className="text-2xl font-bold mb-1">Create your account</h1>

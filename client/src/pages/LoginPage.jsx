@@ -37,9 +37,20 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    try { await login(formData.email, formData.password); }
-    catch (err) { setError(err.response?.data?.message || "Something went wrong. Please try again."); }
-    finally { setIsLoading(false); }
+    try {
+      await login(formData.email, formData.password);
+    } catch (err) {
+      console.error("Login request failed:", err);
+      if (!err.response) {
+        setError(
+          "Could not connect to the API server. Please ensure the backend server is running locally on http://localhost:5001 or check your network status."
+        );
+      } else {
+        setError(err.response.data?.message || "Invalid credentials. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,7 +71,7 @@ const LoginPage = () => {
             <Network className="w-10 h-10 text-accent-400/25" />
           </div>
           <h2 className="text-3xl font-bold text-white leading-tight">
-            Welcome back to <span className="text-accent-400">Nexus AI</span>
+            Welcome back to <span className="text-accent-400">Contexta-AI</span>
           </h2>
           <p className="text-base-400 text-sm leading-relaxed max-w-xs mx-auto">
             Access your AI infrastructure dashboard. Monitor agents, manage deployments, and scale with confidence.
@@ -73,7 +84,7 @@ const LoginPage = () => {
         <div className="w-full max-w-sm animate-fade-in">
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-accent-400 flex items-center justify-center"><Bot className="w-5 h-5 text-white" /></div>
-            <span className="text-lg font-bold">Nexus AI</span>
+            <span className="text-lg font-bold">Contexta-AI</span>
           </div>
 
           <h1 className="text-2xl font-bold mb-1">Sign in</h1>

@@ -25,13 +25,13 @@ const formatSize = (bytes) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    processed: { cls: "bg-green-50 text-green-700", icon: CheckCircle, label: "Processed" },
-    pending:   { cls: "bg-warn-50 text-warn-500", icon: Clock, label: "Pending" },
-    failed:    { cls: "bg-red-50 text-red-500", icon: AlertCircle, label: "Failed" },
+    processed: { cls: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", icon: CheckCircle, label: "Processed" },
+    pending:   { cls: "bg-amber-500/10 text-amber-400 border border-amber-500/20", icon: Clock, label: "Pending" },
+    failed:    { cls: "bg-red-500/10 text-red-400 border border-red-500/20", icon: AlertCircle, label: "Failed" },
   };
   const s = map[status] || map.pending;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${s.cls}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.cls}`}>
       <s.icon className="w-3 h-3" />
       {s.label}
     </span>
@@ -147,21 +147,21 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-50 flex">
+    <div className="min-h-screen bg-[#070A13] text-slate-100 flex">
       <Sidebar active="Documents" mobileOpen={isOpen} onMobileClose={close} />
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <Topbar onMenuToggle={toggle} />
         <main className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
           <div className="animate-fade-in">
-            <h1 className="text-xl font-bold text-base-900">Documents</h1>
-            <p className="text-sm text-base-500 mt-0.5">Upload PDF documents to build your AI knowledge base.</p>
+            <h1 className="text-xl font-bold text-white">Documents</h1>
+            <p className="text-sm text-slate-400 mt-0.5">Upload PDF documents to build your AI knowledge base.</p>
           </div>
 
           {/* Upload Zone */}
-          <div className="card rounded-2xl p-6">
+          <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-6 shadow-lg">
             <label
               className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl py-10 px-4 transition-all duration-300 cursor-pointer
-                ${uploading ? "border-accent-300 bg-accent-50/50" : "border-base-200 hover:border-accent-400 hover:bg-accent-50/30"}`}
+                ${uploading ? "border-cyan-500/40 bg-cyan-500/5" : "border-slate-800 hover:border-cyan-500/50 hover:bg-cyan-500/5"}`}
             >
               <input
                 type="file"
@@ -172,17 +172,17 @@ const DocumentsPage = () => {
               />
               {uploading ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-8 h-8 text-accent-400 animate-spin" />
-                  <p className="text-sm font-medium text-accent-600">{uploadProgress}</p>
+                  <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                  <p className="text-sm font-semibold text-cyan-400">{uploadProgress}</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-accent-50 flex items-center justify-center">
-                    <Upload className="w-6 h-6 text-accent-500" />
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <Upload className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-base-700">Click to upload a PDF</p>
-                    <p className="text-xs text-base-400 mt-1">Maximum file size: 10MB</p>
+                    <p className="text-sm font-bold text-slate-200">Click to upload a PDF</p>
+                    <p className="text-xs text-slate-500 mt-1">Maximum file size: 10MB</p>
                   </div>
                 </div>
               )}
@@ -191,7 +191,7 @@ const DocumentsPage = () => {
 
           {/* Error/Warning */}
           {error && (
-            <div className={`rounded-xl p-4 flex items-start gap-3 text-sm ${error.startsWith("⚠️") ? "bg-warn-50 border border-warn-100 text-warn-500" : "bg-red-50 border border-red-100 text-red-500"}`}>
+            <div className={`rounded-xl p-4 flex items-start gap-3 text-sm border ${error.startsWith("⚠️") ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <p>{error.replace("⚠️ ", "")}</p>
             </div>
@@ -199,34 +199,34 @@ const DocumentsPage = () => {
 
           {/* Document List */}
           {loading ? (
-            <div className="card rounded-2xl p-10 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 text-accent-400 animate-spin" />
+            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-10 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="card rounded-2xl p-10 text-center">
-              <HardDrive className="w-10 h-10 text-base-300 mx-auto mb-3" />
-              <p className="text-base-400 text-sm">No documents uploaded yet. Upload your first PDF above to get started.</p>
+            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-10 text-center">
+              <HardDrive className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 text-sm">No documents uploaded yet. Upload your first PDF above to get started.</p>
             </div>
           ) : (
-            <div className="card rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-base-100 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-base-800">Your Documents</h2>
-                <span className="text-xs text-base-400">{documents.length} document{documents.length !== 1 ? "s" : ""}</span>
+            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl overflow-hidden shadow-lg">
+              <div className="px-5 py-4 border-b border-slate-900 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-white">Your Documents</h2>
+                <span className="text-xs text-slate-400 font-semibold">{documents.length} document{documents.length !== 1 ? "s" : ""}</span>
               </div>
-              <div className="divide-y divide-base-100">
+              <div className="divide-y divide-slate-900">
                 {documents.map((doc) => {
                   const id = doc._id || doc.id;
                   const isReindexing = reindexingId === id;
                   return (
-                    <div key={id} className="p-4 sm:p-5 flex items-start sm:items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                    <div key={id} className="p-4 sm:p-5 flex items-start sm:items-center gap-4 hover:bg-slate-900/10 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 animate-fade-in">
                         <FileText className="w-5 h-5 text-red-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-base-800 truncate">{doc.originalName}</p>
+                        <p className="text-sm font-bold text-slate-200 truncate">{doc.originalName}</p>
                         <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                          <span className="text-xs text-base-400">{formatSize(doc.fileSize)}</span>
-                          {doc.pageCount > 0 && <span className="text-xs text-base-400">• {doc.pageCount} pages</span>}
+                          <span className="text-xs text-slate-500 font-semibold">{formatSize(doc.fileSize)}</span>
+                          {doc.pageCount > 0 && <span className="text-xs text-slate-500 font-semibold">• {doc.pageCount} pages</span>}
                           <StatusBadge status={doc.processingStatus} />
                         </div>
                       </div>
@@ -236,14 +236,14 @@ const DocumentsPage = () => {
                             onClick={() => handleReindex(id)}
                             disabled={isReindexing}
                             title="Retry AI indexing"
-                            className="p-2 rounded-lg hover:bg-accent-50 text-accent-500 transition-colors disabled:opacity-50 cursor-pointer"
+                            className="p-2 rounded-lg hover:bg-cyan-500/10 text-cyan-400 transition-colors disabled:opacity-50 cursor-pointer border-0 bg-transparent"
                           >
                             {isReindexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(id)}
-                          className="p-2 rounded-lg hover:bg-red-50 text-base-400 hover:text-red-500 transition-colors cursor-pointer"
+                          className="p-2 rounded-lg hover:bg-red-500/15 text-slate-500 hover:text-red-400 transition-colors cursor-pointer border-0 bg-transparent"
                           title="Delete document"
                         >
                           <Trash2 className="w-4 h-4" />

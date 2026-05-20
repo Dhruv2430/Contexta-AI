@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import { fileURLToPath } from "url";
+import config from "../config/env.js";
 
 // ---------------------------------------------------------------------------
 // Vector Service
@@ -19,10 +20,7 @@ import { fileURLToPath } from "url";
 // 2. Maintain a separate FAISS index per user. (We will use this approach for complete isolation and safety).
 // ---------------------------------------------------------------------------
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const SERVER_ROOT = path.resolve(__dirname, "../..");
-const VECTOR_STORE_DIR = path.join(SERVER_ROOT, "faiss_index");
+const VECTOR_STORE_DIR = path.join(config.dataDir, "faiss_index");
 
 // Ensure the directory exists
 if (!fs.existsSync(VECTOR_STORE_DIR)) {

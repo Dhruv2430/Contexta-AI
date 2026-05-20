@@ -40,6 +40,7 @@ const config = {
     ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
     : ["http://localhost:5173"],
   isProduction: process.env.NODE_ENV === "production",
+  dataDir: process.env.PERSISTENT_DATA_PATH || path.resolve(__dirname, "../.."),
 };
 
 export default config;

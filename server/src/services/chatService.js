@@ -256,16 +256,85 @@ const findEmailMatches = async (userId) => {
 export const generateAnswer = async (question, userId) => {
   console.log(`[RAG] Starting answer generation for user ${userId}. Query: "${question}"`);
 
+  const promptTemplate = PromptTemplate.fromTemplate(`
+You are a helpful customer support AI assistant. You have access to context extracted from uploaded knowledge base documents.
+
+Context from uploaded documents:
+{context}
+
+Question: {question}
+
+Instructions:
+- FIRST, check if the user's question is a simple greeting or general conversation (like "hi", "hello", "hey", "how are you", "who are you", "what is this chat"). If so, respond in a warm, friendly, professional manner, explaining that you are a helpful support agent ready to assist with their uploaded documents, and invite them to ask a question.
+- For all other questions, read the provided context carefully and answer the question based on it.
+- If the question requests specific facts or document data that are NOT present in the provided context, respond politely with: "I could not find that information in the uploaded documents."
+- Do not invent facts or use outside knowledge for document-specific queries. Answer concisely, professionally, and clearly. Format your output with markdown if appropriate.
+  `);
+
   const localFallback = async (reason) => {
     if (reason) {
       console.warn(`[RAG] Using local document fallback: ${reason}`);
     }
 
     const localChunks = await searchLocalDocumentChunks(question, userId, 6);
-    return {
-      answer: buildExtractiveAnswer(question, localChunks),
-      sources: dedupeSources(localChunks),
-    };
+    const uniqueSources = dedupeSources(localChunks);
+
+    if (localChunks.length === 0) {
+      // If we literally have 0 documents uploaded, check if query is greeting/general chat
+      const isGreeting = /^(hi|hello|hey|yo|greetings|how are you|who are you|what is this)\b/i.test(question.trim().toLowerCase());
+      if (isGreeting) {
+        try {
+          const llm = getLLM();
+          const prompt = await promptTemplate.format({
+            context: "[No documents uploaded yet]",
+            question
+          });
+          const response = await withRetry(
+            () => withTimeout(llm.invoke(prompt), LLM_TIMEOUT_MS, "Gemini LLM Greeting Call"),
+            { retries: 0, baseDelay: 0, label: "LLM generation" }
+          );
+          return {
+            answer: getResponseText(response.content),
+            sources: []
+          };
+        } catch (err) {
+          return {
+            answer: "Hello! I am your AI support assistant. Please upload some knowledge base documents (PDFs) in the dashboard so I can help answer specific questions!",
+            sources: []
+          };
+        }
+      }
+      return {
+        answer: "Please upload some knowledge base documents (PDFs) in the dashboard so I can help answer your questions.",
+        sources: [],
+      };
+    }
+
+    // Format context using local text chunks
+    const context = localChunks.map(chunk => chunk.pageContent).join("\n\n---\n\n");
+    
+    try {
+      const prompt = await promptTemplate.format({
+        context,
+        question
+      });
+      const llm = getLLM();
+      console.log(`[RAG Fallback] Invoking Gemini LLM for local chunks fallback...`);
+      const response = await withRetry(
+        () => withTimeout(llm.invoke(prompt), LLM_TIMEOUT_MS, "Gemini LLM Fallback call"),
+        { retries: 0, baseDelay: 0, label: "LLM generation" }
+      );
+      return {
+        answer: getResponseText(response.content) || "I could not find that information in the uploaded documents.",
+        sources: uniqueSources,
+      };
+    } catch (error) {
+      console.error("[RAG Fallback] Gemini LLM generation failed. Using extractive fallback:", error.message);
+      return {
+        answer: buildExtractiveAnswer(question, localChunks),
+        sources: uniqueSources,
+      };
+    }
   };
 
   // 1. Ensure a usable local FAISS index exists.
@@ -314,22 +383,6 @@ export const generateAnswer = async (question, userId) => {
 
   // 4. Create Strict Prompt Template
   console.log(`[RAG] Step 4: Constructing prompt...`);
-  const promptTemplate = PromptTemplate.fromTemplate(`
-You are an AI assistant tasked with answering questions based ONLY on the provided context.
-
-Context from uploaded documents:
-{context}
-
-Question: {question}
-
-Instructions:
-- Read the context carefully.
-- Answer the question using ONLY the provided context.
-- If the answer is not contained within the context, you MUST respond exactly with: "I could not find that information in the uploaded documents."
-- Do NOT invent or hallucinate answers. Do NOT use outside knowledge.
-- Keep your answer concise and accurate.
-  `);
-
   const prompt = await promptTemplate.format({
     context,
     question
@@ -349,11 +402,8 @@ Instructions:
     console.log(`[RAG] Success: Received response from Gemini.`);
     answer = getResponseText(response.content);
   } catch (error) {
-    console.warn("[RAG] Gemini generation failed. Returning local extractive answer:", error.message);
-    const localChunks = await searchLocalDocumentChunks(question, userId, 6);
-    const fallbackChunks = localChunks.length > 0 ? localChunks : relevantChunks;
-    answer = buildExtractiveAnswer(question, fallbackChunks);
-    uniqueSources = dedupeSources(fallbackChunks);
+    console.warn("[RAG] Gemini generation failed. Returning local fallback:", error.message);
+    return localFallback(error.message);
   }
 
   return {

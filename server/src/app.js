@@ -28,6 +28,7 @@ const ALWAYS_ALLOWED = ["http://localhost:5173", "http://localhost:5174"];
 
 const corsOptions = {
   origin: (origin, callback) => {
+    if (!config.isProduction) return callback(null, true);
     if (!origin) return callback(null, true);
     if (ALWAYS_ALLOWED.includes(origin)) return callback(null, true);
     if (config.corsOrigins.includes(origin)) return callback(null, true);
@@ -80,13 +81,13 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files statically (optional — useful for future download feature)
-app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
+app.use("/uploads", express.static(path.join(config.dataDir, "uploads")));
 
 // ---------------------------------------------------------------------------
 // Health Check
 // ---------------------------------------------------------------------------
 app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "Nexus AI API Running" });
+  res.json({ status: "ok", message: "Contexta-AI API Running" });
 });
 
 // ---------------------------------------------------------------------------

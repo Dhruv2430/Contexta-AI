@@ -7,8 +7,34 @@ import axios from "axios";
 // - Response interceptor dispatches auth expiry event on 401
 // - No global Content-Type — lets axios auto-detect (crucial for FormData)
 // ---------------------------------------------------------------------------
+const getBaseUrl = () => {
+  // If running locally in a browser, connect to the local backend on port 5001
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "[::1]"
+  ) {
+    return "http://localhost:5001/api";
+  }
+
+  let envUrl = import.meta.env.VITE_API_URL || "";
+  
+  // Strip trailing slashes
+  envUrl = envUrl.trim().replace(/\/+$/, "");
+
+  if (envUrl) {
+    if (envUrl.endsWith("/api")) {
+      return envUrl;
+    }
+    return `${envUrl}/api`;
+  }
+  
+  // In production, fallback to relative API prefix
+  return "/api";
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL
+  baseURL: getBaseUrl()
 });
 
 // Attach token to every outgoing request (if it exists)

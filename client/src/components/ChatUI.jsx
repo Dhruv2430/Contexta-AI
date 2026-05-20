@@ -81,43 +81,43 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
   }, [input, isLoading, onSendMessage]);
 
   return (
-    <div className="flex flex-col h-full bg-white relative">
+    <div className="flex flex-col h-full bg-[#0A0F1D] relative">
       {/* Header */}
-      <div className="p-4 border-b border-base-200 flex items-center gap-3 bg-white/80 backdrop-blur-md z-10">
-        <div className="w-8 h-8 rounded-full bg-accent-50 flex items-center justify-center">
-          <Bot className="w-5 h-5 text-accent-500" />
+      <div className="p-4 border-b border-slate-900 flex items-center gap-3 bg-[#0A0F1D]/80 backdrop-blur-md z-10">
+        <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+          <Bot className="w-5 h-5 text-cyan-400" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-base-900">{title}</h2>
-          <p className="text-xs text-green-500 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online
+          <h2 className="text-sm font-bold text-white">{title}</h2>
+          <p className="text-xs text-emerald-400 flex items-center gap-1 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online
           </p>
         </div>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 p-3 flex items-center gap-2 text-sm text-red-600 border-b border-red-100">
+        <div className="bg-red-500/10 p-3 flex items-center gap-2 text-sm text-red-400 border-b border-red-500/20">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <p>{error}</p>
         </div>
       )}
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-[#070A13]">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
           >
             {/* Avatar */}
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-              msg.role === "user" ? "bg-base-100" : "bg-accent-50"
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
+              msg.role === "user" ? "bg-slate-900 border-slate-800" : "bg-cyan-500/10 border-cyan-500/20 shadow-sm"
             }`}>
               {msg.role === "user" ? (
-                <User className="w-4 h-4 text-base-600" />
+                <User className="w-4 h-4 text-slate-300" />
               ) : (
-                <Bot className="w-4 h-4 text-accent-500" />
+                <Bot className="w-4 h-4 text-cyan-400" />
               )}
             </div>
 
@@ -125,18 +125,18 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
             <div className={`max-w-[80%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col`}>
               <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-accent-500 text-white rounded-tr-sm shadow-md shadow-accent-500/20"
-                  : "bg-base-50 text-base-800 rounded-tl-sm border border-base-100"
+                  ? "bg-cyan-500 text-slate-950 font-bold rounded-tr-sm shadow-lg shadow-cyan-500/10"
+                  : "bg-[#0A0F1D] text-slate-100 rounded-tl-sm border border-slate-900 shadow-md"
               }`}>
                 {msg.text}
               </div>
 
               {/* Sources */}
               {msg.role === "ai" && msg.sources && msg.sources.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="text-xs text-base-400 font-medium">Sources:</span>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-bold">Sources:</span>
                   {msg.sources.map((s, i) => (
-                    <span key={`${msg.id}-src-${i}`} className="px-2 py-0.5 bg-base-100 text-base-500 rounded text-[10px] truncate max-w-[150px]">
+                    <span key={`${msg.id}-src-${i}`} className="px-2.5 py-1 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-800 text-slate-300 rounded-lg text-[10px] truncate max-w-[150px] transition-colors font-medium">
                       {s.filename}
                     </span>
                   ))}
@@ -148,14 +148,14 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
 
         {/* Loading Indicator */}
         {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-accent-50 flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 text-accent-500" />
+          <div className="flex gap-3 animate-pulse">
+            <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4 text-cyan-400" />
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-base-50 rounded-tl-sm border border-base-100 flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-base-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-1.5 h-1.5 bg-base-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-1.5 h-1.5 bg-base-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="px-4 py-3 rounded-2xl bg-[#0A0F1D] rounded-tl-sm border border-slate-900 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
           </div>
         )}
@@ -163,7 +163,7 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-base-200">
+      <div className="p-4 bg-[#0A0F1D] border-t border-slate-900">
         <form onSubmit={handleSubmit} className="relative flex items-center">
           <input
             type="text"
@@ -171,18 +171,18 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
             placeholder="Ask a question..."
-            className="w-full pl-4 pr-12 py-3 bg-base-50 border border-base-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-400/20 focus:border-accent-400 transition-all disabled:opacity-50"
+            className="w-full pl-4 pr-12 py-3 bg-[#070A13] border border-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/15 focus:border-cyan-400 transition-all disabled:opacity-50 text-slate-100 placeholder-slate-600"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 p-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:hover:bg-accent-500 transition-colors cursor-pointer"
+            className="absolute right-2 p-2 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-900 disabled:opacity-50 text-slate-950 rounded-lg transition-colors cursor-pointer border-0 shadow-md shadow-cyan-500/10"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-slate-950" /> : <Send className="w-4 h-4 text-slate-950 font-bold" />}
           </button>
         </form>
-        <div className="mt-2 text-center">
-           <span className="text-[10px] text-base-400">Powered by AI • Answers based on uploaded knowledge</span>
+        <div className="mt-3 text-center">
+           <span className="text-[10px] text-slate-500 font-medium">Powered by AI • Answers based on uploaded knowledge</span>
         </div>
       </div>
     </div>

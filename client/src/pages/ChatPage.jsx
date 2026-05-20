@@ -63,40 +63,40 @@ const ChatPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-base-50 flex">
+    <div className="min-h-screen bg-[#070A13] text-slate-100 flex animate-fade-in">
       <Sidebar active="Chat Testing" mobileOpen={isOpen} onMobileClose={close} />
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <Topbar onMenuToggle={toggle} />
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 flex items-center justify-between border-b border-base-100">
+          <div className="px-4 sm:px-6 py-4 flex items-center justify-between border-b border-slate-900">
             <div>
-              <h1 className="text-lg font-bold text-base-900">Chat Testing</h1>
-              <p className="text-xs text-base-400">Ask questions about your uploaded documents</p>
+              <h1 className="text-lg font-bold text-white">Chat Testing</h1>
+              <p className="text-xs text-slate-400">Ask questions about your uploaded documents</p>
             </div>
             <button
               onClick={handleClearHistory}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-base-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-900/60 hover:border-red-500/20 rounded-xl transition-colors cursor-pointer bg-transparent"
               title="Clear chat history"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Clear
             </button>
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden bg-[#070A13]">
             {initialMessages === null ? (
               <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 text-accent-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
               </div>
             ) : (
               <ChatUI
                 onSendMessage={handleSendMessage}
-                title="Nexus AI Assistant"
+                title="Contexta-AI Assistant"
                 initialMessages={initialMessages}
               />
             )}
           </div>
           {historyError && (
-            <div className="px-4 py-2 bg-warn-50 text-warn-500 text-xs text-center">{historyError}</div>
+            <div className="px-4 py-2 bg-amber-500/10 border-t border-amber-500/20 text-amber-400 text-xs text-center">{historyError}</div>
           )}
         </main>
       </div>

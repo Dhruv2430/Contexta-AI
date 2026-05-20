@@ -1,6 +1,8 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
+import config from "../config/env.js";
 
 // ---------------------------------------------------------------------------
 // Upload Middleware — Multer configuration for PDF file uploads
@@ -19,14 +21,16 @@ import { fileURLToPath } from "url";
 // 4. Saves file to server/uploads/ with a unique filename
 // 5. Attaches `req.file` object with { filename, path, size, ... }
 // 6. Controller then reads the saved file for text extraction
+// 7. Dynamic folder creation: ensures mounted disk directories exist on startup.
 // ---------------------------------------------------------------------------
 
-// ESM doesn't have __dirname, so we derive it
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Resolve the uploads directory relative to the persistent data path
+const uploadsDir = path.join(config.dataDir, "uploads");
 
-// Resolve the uploads directory relative to the server root
-const uploadsDir = path.resolve(__dirname, "../../uploads");
+// Ensure directory exists
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // --- Storage Configuration ---
 // diskStorage gives us control over WHERE and HOW files are named
