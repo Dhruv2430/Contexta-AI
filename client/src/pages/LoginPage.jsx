@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import api from "../services/api";
 import { Bot, Mail, Lock, Eye, EyeOff, ArrowRight, Cpu, Network } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -43,7 +44,7 @@ const LoginPage = () => {
       console.error("Login request failed:", err);
       if (!err.response) {
         setError(
-          "Could not connect to the API server. Please ensure the backend server is running locally on http://localhost:5001 or check your network status."
+          `Could not connect to the API server at ${api.defaults.baseURL}. Please verify your Vercel VITE_API_URL environment variable is set to your Render URL and that you have triggered a new Vercel deployment/rebuild.`
         );
       } else {
         setError(err.response.data?.message || "Invalid credentials. Please try again.");
