@@ -81,7 +81,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files statically (optional — useful for future download feature)
-app.use("/uploads", express.static(path.join(config.dataDir, "uploads")));
+app.use("/uploads", express.static(config.uploadsDir));
 
 // ---------------------------------------------------------------------------
 // Health Check

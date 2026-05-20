@@ -25,12 +25,7 @@ import config from "../config/env.js";
 // ---------------------------------------------------------------------------
 
 // Resolve the uploads directory relative to the persistent data path
-const uploadsDir = path.join(config.dataDir, "uploads");
-
-// Ensure directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const uploadsDir = config.uploadsDir;
 
 // --- Storage Configuration ---
 // diskStorage gives us control over WHERE and HOW files are named

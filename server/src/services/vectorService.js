@@ -20,12 +20,7 @@ import config from "../config/env.js";
 // 2. Maintain a separate FAISS index per user. (We will use this approach for complete isolation and safety).
 // ---------------------------------------------------------------------------
 
-const VECTOR_STORE_DIR = path.join(config.dataDir, "faiss_index");
-
-// Ensure the directory exists
-if (!fs.existsSync(VECTOR_STORE_DIR)) {
-  fs.mkdirSync(VECTOR_STORE_DIR, { recursive: true });
-}
+const VECTOR_STORE_DIR = config.faissDir;
 
 /**
  * Gets the path for a user's specific FAISS index.

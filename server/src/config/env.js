@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 // ---------------------------------------------------------------------------
@@ -27,6 +28,41 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
+const SERVER_ROOT = path.resolve(__dirname, "../..");
+const LOCAL_UPLOADS = path.join(SERVER_ROOT, "uploads");
+const LOCAL_FAISS = path.join(SERVER_ROOT, "faiss_index");
+
+let resolvedUploads = LOCAL_UPLOADS;
+let resolvedFaiss = LOCAL_FAISS;
+
+if (process.env.PERSISTENT_DATA_PATH) {
+  const pPath = process.env.PERSISTENT_DATA_PATH;
+  const targetUploads = path.join(pPath, "uploads");
+  const targetFaiss = path.join(pPath, "faiss_index");
+  
+  try {
+    // Try to create/access directories
+    if (!fs.existsSync(targetUploads)) fs.mkdirSync(targetUploads, { recursive: true });
+    if (!fs.existsSync(targetFaiss)) fs.mkdirSync(targetFaiss, { recursive: true });
+    
+    // Test write permission by writing a tiny temp file
+    const testFile = path.join(pPath, ".write_test");
+    fs.writeFileSync(testFile, "test");
+    fs.unlinkSync(testFile);
+    
+    resolvedUploads = targetUploads;
+    resolvedFaiss = targetFaiss;
+    console.log(`[Storage] Successfully verified persistent storage at: ${pPath}`);
+  } catch (err) {
+    console.error(`[Storage] Write permission denied on PERSISTENT_DATA_PATH (${pPath}):`, err.message);
+    console.warn(`[Storage] Falling back to local server storage in ${SERVER_ROOT}`);
+  }
+}
+
+// Always ensure final directories exist
+if (!fs.existsSync(resolvedUploads)) fs.mkdirSync(resolvedUploads, { recursive: true });
+if (!fs.existsSync(resolvedFaiss)) fs.mkdirSync(resolvedFaiss, { recursive: true });
+
 // --- Exported config object ---
 const config = {
   port: parseInt(process.env.PORT, 10) || 5001,
@@ -40,7 +76,9 @@ const config = {
     ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
     : ["http://localhost:5173"],
   isProduction: process.env.NODE_ENV === "production",
-  dataDir: process.env.PERSISTENT_DATA_PATH || path.resolve(__dirname, "../.."),
+  uploadsDir: resolvedUploads,
+  faissDir: resolvedFaiss,
 };
 
 export default config;
+export { resolvedUploads, resolvedFaiss };
