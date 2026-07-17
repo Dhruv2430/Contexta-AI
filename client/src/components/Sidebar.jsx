@@ -71,10 +71,10 @@ const Sidebar = ({ active, mobileOpen = false, onMobileClose }) => {
     <>
       <div className="flex items-center justify-between px-5 py-6">
         <Link to="/dashboard" className="flex items-center gap-3 group no-underline">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-            <Bot className="w-4.5 h-4.5 text-slate-950 font-bold" />
+          <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center transition-transform duration-200 shadow-md shadow-forest-100">
+            <Bot className="w-4.5 h-4.5 text-white" />
           </div>
-          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-400 bg-clip-text text-transparent">
+          <span className="text-base font-bold tracking-tight text-slate-900 font-display">
             Contexta-AI
           </span>
         </Link>
@@ -82,7 +82,7 @@ const Sidebar = ({ active, mobileOpen = false, onMobileClose }) => {
         {onMobileClose && (
           <button
             onClick={onMobileClose}
-            className="md:hidden p-1.5 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="md:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
             aria-label="Close navigation"
           >
             <X className="w-4 h-4" />
@@ -96,28 +96,28 @@ const Sidebar = ({ active, mobileOpen = false, onMobileClose }) => {
 
           return (
             <Link key={item.label} to={href}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 cursor-pointer no-underline border-l-2
-                ${isActive 
-                  ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/5 text-cyan-400 font-semibold border-cyan-400" 
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900/40 border-transparent"}`}>
-              <item.icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "scale-105 text-cyan-400" : "group-hover:scale-105"}`} />
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all duration-200 cursor-pointer no-underline border-l-2
+                ${isActive
+                  ? "bg-forest-50/70 text-forest-600 font-semibold border-forest-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-transparent"}`}>
+              <item.icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-forest-600" : "text-slate-400 group-hover:text-slate-700"}`} />
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="h-px bg-slate-900 mx-3 my-3" />
+      <div className="h-px bg-slate-100 mx-3 my-3" />
       <nav className="px-3 pb-6 space-y-1">
         {bottomNav.map((item) => {
           const isActive = item.label === currentActive;
 
           return (
-            <Link key={item.label} to={routeMap[item.label]} 
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 cursor-pointer no-underline border-l-2
-                ${isActive 
-                  ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/5 text-cyan-400 font-semibold border-cyan-400" 
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900/40 border-transparent"}`}>
-              <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-cyan-400" : ""}`} />
+            <Link key={item.label} to={routeMap[item.label]}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all duration-200 cursor-pointer no-underline border-l-2
+                ${isActive
+                  ? "bg-forest-50/70 text-forest-600 font-semibold border-forest-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-transparent"}`}>
+              <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-forest-600" : "text-slate-400"}`} />
               {item.label}
             </Link>
           );
@@ -129,7 +129,7 @@ const Sidebar = ({ active, mobileOpen = false, onMobileClose }) => {
   return (
     <>
       {/* Desktop sidebar — always visible on md+ */}
-      <aside className="hidden md:flex flex-col w-56 h-screen sticky top-0 bg-[#080C16] text-white shrink-0 border-r border-slate-900/80">
+      <aside className="hidden md:flex flex-col w-56 h-screen sticky top-0 bg-white text-slate-800 shrink-0 border-r border-slate-200/60">
         {sidebarContent}
       </aside>
 
@@ -138,14 +138,14 @@ const Sidebar = ({ active, mobileOpen = false, onMobileClose }) => {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/20 z-40 md:hidden backdrop-blur-xs"
             onClick={onMobileClose}
             aria-hidden="true"
           />
           {/* Drawer */}
           <aside
-            className="fixed inset-y-0 left-0 w-64 bg-[#080C16] text-white z-50 md:hidden flex flex-col shadow-2xl border-r border-slate-900"
-            style={{ animation: "slide-in-left 0.25s ease-out" }}
+            className="fixed inset-y-0 left-0 w-64 bg-white text-slate-800 z-50 md:hidden flex flex-col shadow-xl border-r border-slate-200/60"
+            style={{ animation: "slide-in-left 0.2s ease-out" }}
           >
             {sidebarContent}
           </aside>

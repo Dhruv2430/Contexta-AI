@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import useMobileSidebar from "../hooks/useMobileSidebar";
@@ -25,13 +25,13 @@ const formatSize = (bytes) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    processed: { cls: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", icon: CheckCircle, label: "Processed" },
-    pending:   { cls: "bg-amber-500/10 text-amber-400 border border-amber-500/20", icon: Clock, label: "Pending" },
-    failed:    { cls: "bg-red-500/10 text-red-400 border border-red-500/20", icon: AlertCircle, label: "Failed" },
+    processed: { cls: "bg-emerald-55 bg-emerald-50 text-emerald-700 border border-emerald-100", icon: CheckCircle, label: "Processed" },
+    pending:   { cls: "bg-amber-50 text-amber-700 border border-amber-100", icon: Clock, label: "Pending" },
+    failed:    { cls: "bg-red-55 bg-red-50 text-red-600 border border-red-150", icon: AlertCircle, label: "Failed" },
   };
   const s = map[status] || map.pending;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.cls}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>
       <s.icon className="w-3 h-3" />
       {s.label}
     </span>
@@ -47,22 +47,29 @@ const DocumentsPage = () => {
   const [reindexingId, setReindexingId] = useState(null);
   const { isOpen, toggle, close } = useMobileSidebar();
 
-  const fetchDocuments = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get("/documents");
-      setDocuments(data.documents || []);
-      setError("");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load documents.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+    let active = true;
+
+    const loadDocuments = async () => {
+      try {
+        const { data } = await api.get("/documents");
+        if (!active) return;
+        setDocuments(data.documents || []);
+        setError("");
+      } catch (err) {
+        if (!active) return;
+        setError(err.response?.data?.message || "Failed to load documents.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadDocuments();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -147,21 +154,21 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-slate-100 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-700 flex">
       <Sidebar active="Documents" mobileOpen={isOpen} onMobileClose={close} />
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <Topbar onMenuToggle={toggle} />
-        <main className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
-          <div className="animate-fade-in">
-            <h1 className="text-xl font-bold text-white">Documents</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Upload PDF documents to build your AI knowledge base.</p>
+        <main className="flex-1 p-6 md:p-8 space-y-6 md:space-y-8 overflow-y-auto">
+          <div className="animate-fade-in text-left">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 font-display">Documents</h1>
+            <p className="text-sm text-slate-500 mt-1.5 font-medium">Upload PDF documents to build your AI knowledge base.</p>
           </div>
 
           {/* Upload Zone */}
-          <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-6 shadow-lg">
+          <div className="card p-6 bg-white border border-slate-200/60 shadow-sm">
             <label
-              className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl py-10 px-4 transition-all duration-300 cursor-pointer
-                ${uploading ? "border-cyan-500/40 bg-cyan-500/5" : "border-slate-800 hover:border-cyan-500/50 hover:bg-cyan-500/5"}`}
+              className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg py-10 px-4 transition-all duration-200 cursor-pointer
+                ${uploading ? "border-forest-600 bg-forest-50/10" : "border-slate-300 hover:border-forest-500 hover:bg-slate-50/50"}`}
             >
               <input
                 type="file"
@@ -172,17 +179,17 @@ const DocumentsPage = () => {
               />
               {uploading ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-                  <p className="text-sm font-semibold text-cyan-400">{uploadProgress}</p>
+                  <Loader2 className="w-8 h-8 text-forest-600 animate-spin" />
+                  <p className="text-sm font-semibold text-slate-700">{uploadProgress}</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-                    <Upload className="w-6 h-6 text-cyan-400" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-sm text-forest-600">
+                    <Upload className="w-6 h-6" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-slate-200">Click to upload a PDF</p>
-                    <p className="text-xs text-slate-500 mt-1">Maximum file size: 10MB</p>
+                    <p className="text-sm font-semibold text-slate-800">Click to upload a PDF</p>
+                    <p className="text-xs text-slate-400 mt-1">Maximum file size: 10MB</p>
                   </div>
                 </div>
               )}
@@ -191,7 +198,7 @@ const DocumentsPage = () => {
 
           {/* Error/Warning */}
           {error && (
-            <div className={`rounded-xl p-4 flex items-start gap-3 text-sm border ${error.startsWith("⚠️") ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
+            <div className={`rounded-lg p-4 flex items-start gap-3 text-sm border ${error.startsWith("⚠️") ? "bg-amber-50 border-amber-200 text-amber-700 font-medium" : "bg-red-50 border-red-200 text-red-600 font-medium"}`}>
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <p>{error.replace("⚠️ ", "")}</p>
             </div>
@@ -199,54 +206,74 @@ const DocumentsPage = () => {
 
           {/* Document List */}
           {loading ? (
-            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-10 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+            <div className="card p-6 space-y-4 animate-pulse bg-white border border-slate-200/60 shadow-sm">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                <div className="h-4 bg-slate-100 rounded w-28" />
+                <div className="h-4 bg-slate-100 rounded w-16" />
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 py-3 border-b border-slate-50 last:border-0">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-100 rounded w-3/4" />
+                      <div className="h-2.5 bg-slate-100 rounded w-1/4" />
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-slate-100" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : documents.length === 0 ? (
-            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl p-10 text-center">
-              <HardDrive className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400 text-sm">No documents uploaded yet. Upload your first PDF above to get started.</p>
+            <div className="card p-12 text-center border-dashed border-2 border-slate-200 bg-white shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-forest-50 border border-forest-100 flex items-center justify-center mx-auto mb-4 text-forest-600">
+                <HardDrive className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-800 mb-1">No documents uploaded</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed font-medium">
+                Ingest a PDF above. The system will automatically chunk, embed, and load it into your isolated FAISS vector index.
+              </p>
             </div>
           ) : (
-            <div className="bg-[#0A0F1D] border border-slate-900/60 rounded-2xl overflow-hidden shadow-lg">
-              <div className="px-5 py-4 border-b border-slate-900 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-white">Your Documents</h2>
-                <span className="text-xs text-slate-400 font-semibold">{documents.length} document{documents.length !== 1 ? "s" : ""}</span>
+            <div className="card overflow-hidden bg-white border border-slate-200/60 shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Your Documents</h2>
+                <span className="text-xs text-slate-500 font-semibold">{documents.length} document{documents.length !== 1 ? "s" : ""}</span>
               </div>
-              <div className="divide-y divide-slate-900">
+              <div className="divide-y divide-slate-100">
                 {documents.map((doc) => {
                   const id = doc._id || doc.id;
                   const isReindexing = reindexingId === id;
                   return (
-                    <div key={id} className="p-4 sm:p-5 flex items-start sm:items-center gap-4 hover:bg-slate-900/10 transition-colors">
-                      <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 animate-fade-in">
-                        <FileText className="w-5 h-5 text-red-400" />
+                    <div key={id} className="px-6 py-4 flex items-start sm:items-center gap-4 hover:bg-slate-50/40 transition-colors text-left">
+                      <div className="w-9 h-9 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-xs text-slate-400">
+                        <FileText className="w-4.5 h-4.5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-200 truncate">{doc.originalName}</p>
-                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                          <span className="text-xs text-slate-500 font-semibold">{formatSize(doc.fileSize)}</span>
-                          {doc.pageCount > 0 && <span className="text-xs text-slate-500 font-semibold">• {doc.pageCount} pages</span>}
+                        <p className="text-sm font-semibold text-slate-700 truncate">{doc.originalName}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-400 font-medium">{formatSize(doc.fileSize)}</span>
+                          {doc.pageCount > 0 && <span className="text-xs text-slate-400 font-medium">• {doc.pageCount} pages</span>}
                           <StatusBadge status={doc.processingStatus} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {doc.processingStatus === "failed" && (
                           <button
                             onClick={() => handleReindex(id)}
                             disabled={isReindexing}
                             title="Retry AI indexing"
-                            className="p-2 rounded-lg hover:bg-cyan-500/10 text-cyan-400 transition-colors disabled:opacity-50 cursor-pointer border-0 bg-transparent"
+                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0 bg-transparent"
                           >
                             {isReindexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(id)}
-                          className="p-2 rounded-lg hover:bg-red-500/15 text-slate-500 hover:text-red-400 transition-colors cursor-pointer border-0 bg-transparent"
+                          className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-red-600 transition-all cursor-pointer border-0 bg-transparent"
                           title="Delete document"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4.5 h-4.5" />
                         </button>
                       </div>
                     </div>

@@ -6,11 +6,8 @@ import {
   GitBranch,
   BarChart3,
   Rocket,
-  Activity,
   ArrowRight,
   Shield,
-  Zap,
-  Globe,
   Sparkles,
   Check,
   Cpu,
@@ -90,6 +87,12 @@ const sampleDocs = {
   }
 };
 
+let landingChatMessageCounter = 0;
+const nextLandingChatMessageId = (suffix = "") => {
+  landingChatMessageCounter += 1;
+  return `landing-chat-${landingChatMessageCounter}${suffix}`;
+};
+
 const LandingPage = () => {
   // RAG Simulator States
   const [selectedDocKey, setSelectedDocKey] = useState("refund_policy");
@@ -135,13 +138,13 @@ const LandingPage = () => {
     };
   }, []);
 
-  // Update query when document changes
-  useEffect(() => {
+  const handleDocumentSelect = (key) => {
     if (simIntervalRef.current) clearInterval(simIntervalRef.current);
-    setCurrentQuery(sampleDocs[selectedDocKey].questions[0]);
+    setSelectedDocKey(key);
+    setCurrentQuery(sampleDocs[key].questions[0]);
     setSimStep(0);
     setDisplayedAnswer("");
-  }, [selectedDocKey]);
+  };
 
   // Run the RAG pipeline simulator
   const handleSimulate = () => {
@@ -185,7 +188,7 @@ const LandingPage = () => {
     if (!msg.trim()) return;
 
     // Add user message
-    const newUserMessage = { id: Date.now().toString(), sender: "user", text: msg };
+    const newUserMessage = { id: nextLandingChatMessageId(), sender: "user", text: msg };
     setChatMessages((prev) => [...prev, newUserMessage]);
     if (!textToSend) setChatInput("");
     setIsChatTyping(true);
@@ -258,7 +261,7 @@ const LandingPage = () => {
     // Simulate pipeline thinking delay and typewriter stream response
     setTimeout(() => {
       setIsChatTyping(false);
-      const newBotMsgId = Date.now().toString() + "_bot";
+      const newBotMsgId = nextLandingChatMessageId("-bot");
       setChatMessages((prev) => [...prev, { id: newBotMsgId, sender: "bot", text: "" }]);
 
       let i = 0;
@@ -277,24 +280,18 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-slate-100 font-sans selection:bg-cyan-500 selection:text-black overflow-hidden relative">
-      
-      {/* ── Background Grids & Glows ── */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none opacity-40" />
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-[30%] right-1/4 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-1/3 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 text-slate-700 font-sans selection:bg-forest-100 selection:text-forest-900 overflow-x-hidden relative">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-[#070A13]/85 backdrop-blur-md border-b border-slate-900 transition-all duration-300">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100/80 transition-all duration-300">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 h-16">
           <div className="flex items-center gap-10">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all duration-300">
-                <Bot className="w-5 h-5 text-black stroke-[2.5]" />
+            <Link to="/" className="flex items-center gap-2.5 group no-underline">
+              <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center transition-all duration-200 shadow-md shadow-forest-100">
+                <Bot className="w-4.5 h-4.5 text-white stroke-[2]" />
               </div>
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                Contexta<span className="text-cyan-400 font-extrabold">-AI</span>
+              <span className="text-xl font-bold tracking-tight text-slate-900 font-display">
+                Contexta-AI
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
@@ -302,7 +299,7 @@ const LandingPage = () => {
                 <a
                   key={l}
                   href={`#${l.toLowerCase().replace(" ", "-")}`}
-                  className="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200"
+                  className="text-sm font-medium text-slate-500 hover:text-forest-600 transition-colors duration-200 no-underline"
                 >
                   {l}
                 </a>
@@ -312,17 +309,15 @@ const LandingPage = () => {
           <div className="flex items-center gap-4">
             <Link
               to="/login"
-              className="text-sm font-medium text-slate-300 hover:text-white transition-all duration-200"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all duration-200 no-underline"
             >
               Sign In
             </Link>
             <Link
               to="/signup"
-              className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-xs font-semibold text-white rounded-xl group bg-gradient-to-br from-cyan-400 to-blue-600 hover:text-black focus:ring-4 focus:outline-none focus:ring-cyan-800 transition-all duration-300 cursor-pointer mt-2"
+              className="btn-forest px-4 py-2 text-xs font-semibold shadow-md shadow-forest-100 no-underline"
             >
-              <span className="relative px-4 py-2 transition-all ease-in duration-75 bg-[#090D1A] rounded-lg group-hover:bg-opacity-0 font-bold">
-                Get Started Free
-              </span>
+              Start Free
             </Link>
           </div>
         </nav>
@@ -332,118 +327,354 @@ const LandingPage = () => {
       <main className="relative z-10">
         
         {/* ── Hero Section ── */}
-        <section className="relative pt-24 pb-20 px-6 max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto space-y-8">
+        <section className="relative pt-16 pb-16 px-6 max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7 text-left space-y-6">
             
             {/* Tagline */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/25 bg-cyan-950/20 text-xs text-cyan-400 font-semibold shadow-inner shadow-cyan-500/5 animate-fade-in">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>Next-Gen RAG System with Vector Isolation</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-forest-100 bg-forest-50/70 text-xs text-forest-700 font-semibold shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-forest-600" />
+              <span>ENTERPRISE READY</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.08] text-white">
-              Ground Your AI Agents In <br />
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 bg-clip-text text-transparent">
-                Verified Knowledge.
-              </span>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1] text-slate-900 font-display">
+              Deploy an AI Support Agent <br />
+              <span className="text-forest-600">Trained on Your Data</span>
             </h1>
 
             {/* Sub-headline */}
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Upload documents, automatically chunk and index them into an isolated vector database, and deploy context-aware chatbots in minutes.
+            <p className="text-base md:text-lg text-slate-500 max-w-xl leading-relaxed font-medium">
+              Automate 84% of support queries with high-fidelity RAG pipelines. Your documents, your knowledge, solved by a precise AI trained to mirror your brand's voice.
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-start items-center gap-3 pt-2">
               <Link
                 to="/signup"
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-extrabold rounded-2xl shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/35 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 group"
+                className="btn-forest w-full sm:w-auto px-6 py-3 font-semibold shadow-md shadow-forest-100 no-underline"
               >
-                Deploy AI Widget <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Start Building
               </Link>
               <a
                 href="#rag-engine"
-                className="w-full sm:w-auto px-8 py-3.5 border border-slate-800 bg-slate-900/50 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold rounded-2xl hover:border-slate-600 transition-all duration-300 flex items-center justify-center gap-2"
+                className="btn-forest-secondary w-full sm:w-auto px-6 py-3 font-semibold no-underline"
               >
-                <Play className="w-4 h-4 fill-current text-cyan-400" /> See RAG Sandbox
+                <Play className="w-3.5 h-3.5 text-forest-600 fill-current" /> Watch Demo
               </a>
             </div>
+          </div>
 
-            {/* Stats badges */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-16 max-w-5xl mx-auto">
+          {/* Right Side: Floating mock chatbot */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="w-full max-w-[450px] bg-white rounded-2xl border border-slate-200/60 shadow-xl overflow-hidden">
+              {/* Header */}
+              <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                  </div>
+                  <div className="w-7 h-7 rounded-lg bg-forest-600 flex items-center justify-center text-white ml-2">
+                    <Bot className="w-4 h-4 stroke-[2]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 leading-none">Knowledge Agent</h4>
+                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active Database
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Simulation Area */}
+              <div className="p-4 space-y-4 bg-slate-50/40 min-h-[220px]">
+                {/* User Message */}
+                <div className="flex gap-2 max-w-[85%] self-end flex-row-reverse ml-auto">
+                  <div className="w-6 h-6 rounded shrink-0 bg-forest-600 text-white flex items-center justify-center text-[10px] shadow-sm">
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="rounded-xl p-3 text-xs bg-forest-600 text-white font-medium shadow-md shadow-forest-50">
+                    How do I configure Webhooks in my developer dashboard?
+                  </div>
+                </div>
+
+                {/* Bot Response */}
+                <div className="flex gap-2 max-w-[90%] self-start mr-auto">
+                  <div className="w-6 h-6 rounded shrink-0 bg-white border border-slate-100 text-slate-500 flex items-center justify-center text-[10px] shadow-sm">
+                    <Bot className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="rounded-xl p-3 text-xs bg-white text-slate-800 border border-slate-200/60 shadow-sm leading-relaxed text-left">
+                      I found the configuration steps in your <span className="font-semibold text-forest-600">Developer_API_v4_Docs.pdf</span>:
+                      <ol className="list-decimal pl-4 mt-1.5 space-y-1">
+                        <li>Head to your developer dashboard & select Webhooks.</li>
+                        <li>Add your API endpoint & select events to listen for.</li>
+                        <li>Secure requests using the signature header.</li>
+                      </ol>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded border border-forest-100 bg-forest-50/50 text-[10px] font-semibold text-forest-700">
+                      Source: API Docs (Chunk #3)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Logo Strip ── */}
+        <section className="py-10 border-t border-b border-slate-100 bg-white">
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-6">TRUSTED BY 10,000+ ENGINEERING TEAMS</p>
+            <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-6 opacity-40 grayscale">
+              <span className="text-sm font-black tracking-widest font-mono text-slate-700">★ NEXUS</span>
+              <span className="text-sm font-black tracking-widest font-mono text-slate-700">❂ CYBERDYNE</span>
+              <span className="text-sm font-black tracking-widest font-mono text-slate-700">▲ STRATUS</span>
+              <span className="text-sm font-black tracking-widest font-mono text-slate-700">❖ DATARETA</span>
+              <span className="text-sm font-black tracking-widest font-mono text-slate-700">⎔ ORBITAL</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Features Showcase Grid ── */}
+        <section id="features" className="py-20 px-6 max-w-7xl mx-auto relative">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 font-display">
+              Artisanal Intelligence Infrastructure
+            </h2>
+            <p className="text-slate-500 leading-relaxed font-medium max-w-2xl mx-auto">
+              Modern enterprises require more than just a chatbot. They need a systematic knowledge engine that grows with their operations.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: FileText, title: "Multi-Format RAG", desc: "Ingest PDFs, Notion pages, Zendesk tickets, and Slack archives with automated semantic chunking." },
+              { icon: Shield, title: "Hallucination Controls", desc: "Adversarial verification layers ensure the AI only answers based on provided context, never inventing facts." },
+              { icon: Bot, title: "Feedback Loops", desc: "Continuously improve accuracy with 'Human-in-the-loop' reinforcements from your expert support agents." },
+              { icon: GlobeIcon, title: "Global Translation", desc: "Support customers in 100+ languages with native-level fluency, while maintaining technical accuracy." },
+              { icon: CodeIcon, title: "Headless Deployment", desc: "Integrate your agent via robust APIs, Webhooks, or our pre-built float components and SDKs." },
+              { icon: LockIcon, title: "SOC2 Compliance", desc: "Enterprise-grade security with PII masking, data residency controls, and end-to-end encryption." }
+            ].map((f) => {
+              const IconComp = f.icon;
+              return (
+                <div
+                  key={f.title}
+                  className="card p-6 transition-all duration-200 hover:-translate-y-1 text-left border border-slate-100 shadow-sm hover:shadow-md hover:border-forest-150 group bg-white"
+                >
+                  <div className="w-10 h-10 rounded-md bg-forest-50 border border-forest-100 flex items-center justify-center mb-4 transition-transform text-forest-600">
+                    <IconComp className="w-5 h-5 stroke-[2]" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">{f.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium">{f.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── Journey / Timeline Section ── */}
+        <section className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200/50">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-display">
+              A Systematic Journey to Automation
+            </h2>
+            <p className="text-slate-500 leading-relaxed font-medium">
+              From raw data to accurate answers in milliseconds.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Connection Line */}
+            <div className="hidden lg:block absolute top-6 left-12 right-12 h-0.5 bg-slate-200" />
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 relative z-10">
               {[
-                { v: "< 12ms", label: "Semantic Retrieval" },
-                { v: "99.98%", label: "Context Accuracy" },
-                { v: "100%", label: "Vector Store Isolation" },
-                { v: "1-Click", label: "Embeddable Widget" }
-              ].map((stat, i) => (
-                <div key={i} className="border border-slate-900 bg-slate-950/40 backdrop-blur-sm rounded-2xl p-5 hover:border-slate-800 transition-colors duration-300">
-                  <div className="text-2xl md:text-3xl font-black text-white">{stat.v}</div>
-                  <div className="text-xs text-slate-400 font-medium mt-1">{stat.label}</div>
+                { step: "1", title: "Ingest", desc: "Upload your data sources (files, FAQs, manuals)." },
+                { step: "2", title: "Process", desc: "Parsing text, sanitizing data, extracting key terms." },
+                { step: "3", title: "Embed", desc: "Convert text into high-dimensional vector representations." },
+                { step: "4", title: "Query", desc: "Retrieve relevant context with vector search." },
+                { step: "5", title: "Synthesize", desc: "Formulate precise response using LLM." },
+                { step: "6", title: "Resolve", desc: "Customer query is resolved and closed." }
+              ].map((s) => (
+                <div key={s.step} className="text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-forest-600 text-white flex items-center justify-center mx-auto text-sm font-bold shadow-md shadow-forest-100">
+                    {s.step}
+                  </div>
+                  <h4 className="text-sm font-semibold text-slate-900 pt-1">{s.title}</h4>
+                  <p className="text-[11px] text-slate-500 leading-normal max-w-[130px] mx-auto font-medium">
+                    {s.desc}
+                  </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Master Your AI Experience Banner & Dashboard Mockup ── */}
+        <section className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200/50">
+          <div className="bg-gradient-to-tr from-forest-950 via-forest-900 to-forest-850 rounded-3xl p-8 lg:p-12 text-white grid lg:grid-cols-12 gap-8 items-center shadow-xl">
+            
+            <div className="lg:col-span-5 text-left space-y-6">
+              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight text-white font-display">
+                Master Your AI Experience
+              </h2>
+              <p className="text-forest-100/80 leading-relaxed text-xs md:text-sm font-medium">
+                Gain absolute visibility into every interaction. Monitor citation accuracy, latency, and customer satisfaction in real-time.
+              </p>
+              
+              <ul className="space-y-3.5 text-xs text-forest-200 list-none p-0">
+                {["Advanced analytics on-demand", "Custom brand persona suite", "Real-time moderation monitoring"].map((c) => (
+                  <li key={c} className="flex items-center gap-2.5 font-semibold">
+                    <div className="w-4 h-4 rounded-full bg-forest-600 border border-forest-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                    {c}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="pt-2">
+                <Link
+                  to="/signup"
+                  className="btn-forest bg-white text-forest-900 hover:bg-forest-50 px-6 py-2.5 font-semibold no-underline"
+                >
+                  Explore Platform
+                </Link>
+              </div>
+            </div>
+
+            {/* Dashboard UI mockup */}
+            <div className="lg:col-span-7 w-full">
+              <div className="bg-white/95 rounded-2xl p-4 shadow-2xl border border-white/20 text-slate-800">
+                {/* Header */}
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4.5 h-4.5 text-forest-600" />
+                    <span className="text-xs font-bold text-slate-900">Performance Dashboard</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold">Active Widget • API Operational</span>
+                </div>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-3 gap-3 my-3">
+                  {[
+                    { label: "Citation Accuracy", val: "99.98%", change: "+0.02%", color: "text-emerald-600" },
+                    { label: "Avg Latency", val: "12ms", change: "-1.2ms", color: "text-emerald-600" },
+                    { label: "CSAT Score", val: "4.95 / 5", change: "+1.1%", color: "text-emerald-600" }
+                  ].map((st) => (
+                    <div key={st.label} className="bg-slate-50 p-2.5 rounded-lg border border-slate-150 text-left">
+                      <span className="text-[9px] text-slate-500 font-semibold block">{st.label}</span>
+                      <span className="text-sm font-bold text-slate-900 mt-0.5 block">{st.val}</span>
+                      <span className={`text-[9px] font-bold ${st.color} block mt-0.5`}>{st.change}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mock Graph representation */}
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-150 mb-3 text-left">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[10px] font-bold text-slate-800">Inbound Queries & Resolution Rates</span>
+                    <span className="text-[9px] text-slate-500 font-medium">Last 7 Days</span>
+                  </div>
+                  {/* Visual SVG bar graphs */}
+                  <div className="flex items-end justify-between h-20 pt-2 gap-2">
+                    {[35, 52, 45, 68, 82, 91, 85].map((h, idx) => (
+                      <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                        <div className="w-full bg-forest-600/10 rounded-t h-full relative overflow-hidden flex items-end">
+                          <div className="w-full bg-forest-600 rounded-t transition-all duration-300" style={{ height: `${h}%` }} />
+                        </div>
+                        <span className="text-[8px] text-slate-400 font-semibold">Day {idx+1}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Logs table */}
+                <div className="text-left">
+                  <span className="text-[10px] font-bold text-slate-800 block mb-1.5">Recent Resolving Logs</span>
+                  <div className="space-y-1.5">
+                    {[
+                      { q: "What is the restocking fee?", status: "Resolved", doc: "Customer_Refund_Policy.pdf", confidence: "94.2%" },
+                      { q: "How do I authenticate API calls?", status: "Resolved", doc: "Developer_API_v4_Docs.pdf", confidence: "99.1%" }
+                    ].map((log, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-150 text-[10px]">
+                        <div className="truncate max-w-[200px] font-medium text-slate-800 text-left">
+                          {log.q}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] text-slate-500 font-mono truncate max-w-[120px]">{log.doc}</span>
+                          <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold">{log.confidence}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
             </div>
 
           </div>
         </section>
 
         {/* ── Interactive RAG Simulator Sandbox ── */}
-        <section id="rag-engine" className="py-24 px-6 max-w-7xl mx-auto relative">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <div className="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 tracking-wider uppercase">
+        <section id="rag-engine" className="py-20 px-6 max-w-7xl mx-auto relative border-t border-slate-200/50">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-forest-50 border border-forest-100 text-xs font-semibold text-forest-700 tracking-wider uppercase">
               <Cpu className="w-4 h-4" /> Live Interactive Sandbox
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white">Visual RAG Pipeline</h2>
-            <p className="text-slate-400 leading-relaxed">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-display">Visual RAG Pipeline</h2>
+            <p className="text-slate-500 leading-relaxed font-medium">
               Explore how Retrieval-Augmented Generation processes documents, finds matches in vector space, and generates responses. Click simulate to see the pipeline flow.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+          <div className="grid lg:grid-cols-12 gap-6 items-stretch">
             
             {/* Controller / Doc Selector Panel (5 cols) */}
             <div className="lg:col-span-5 flex flex-col gap-6">
               
               {/* Document Selection Card */}
-              <div className="border border-slate-900 bg-slate-950/70 rounded-3xl p-6 space-y-5 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <div className="card p-6 space-y-4 relative overflow-hidden border border-slate-100 shadow-sm bg-white">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-forest-600" />
                   Step 1: Select Knowledge Document
                 </h3>
                 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {Object.keys(sampleDocs).map((key) => {
                     const doc = sampleDocs[key];
                     const isSelected = selectedDocKey === key;
                     return (
                       <button
                         key={key}
-                        onClick={() => setSelectedDocKey(key)}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left group cursor-pointer ${
+                        onClick={() => handleDocumentSelect(key)}
+                        className={`w-full flex items-center justify-between p-3.5 rounded-lg border transition-all text-left group cursor-pointer ${
                           isSelected
-                            ? "bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-500/5"
-                            : "bg-slate-950 border-slate-900 hover:border-slate-800 hover:bg-slate-900/40"
+                            ? "bg-forest-50/50 border-forest-600 shadow-sm"
+                            : "bg-white border-slate-200/60 hover:border-forest-500 hover:bg-slate-50"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-xl transition-colors ${
-                            isSelected ? "bg-cyan-400 text-black" : "bg-slate-900 text-slate-400 group-hover:text-slate-200"
+                          <div className={`p-2 rounded-md transition-colors border ${
+                            isSelected 
+                              ? "bg-forest-600 border-forest-600 text-white shadow-sm" 
+                              : "bg-slate-50 border-slate-200/60 text-slate-500 group-hover:text-slate-800"
                           }`}>
-                            <FileText className="w-4.5 h-4.5" />
+                            <FileText className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className={`text-sm font-semibold ${isSelected ? "text-white" : "text-slate-300"}`}>
+                            <p className={`text-xs font-semibold ${isSelected ? "text-forest-900" : "text-slate-700"}`}>
                               {doc.title}
                             </p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{doc.size} • PDF Document</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">{doc.size} • PDF Document</p>
                           </div>
                         </div>
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                          isSelected ? "border-cyan-400 bg-cyan-400 text-black" : "border-slate-800"
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                          isSelected ? "border-forest-600 bg-forest-600 text-white" : "border-slate-300"
                         }`}>
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                         </div>
                       </button>
                     );
@@ -452,13 +683,13 @@ const LandingPage = () => {
               </div>
 
               {/* Question Selection Card */}
-              <div className="border border-slate-900 bg-slate-950/70 rounded-3xl p-6 space-y-5 shadow-2xl relative">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <div className="card p-6 space-y-4 relative border border-slate-100 shadow-sm bg-white">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-forest-600" />
                   Step 2: Choose Query or Ask Custom
                 </h3>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {docData.questions.map((q) => {
                     const isSelected = currentQuery === q;
                     return (
@@ -469,10 +700,10 @@ const LandingPage = () => {
                           setSimStep(0);
                           setDisplayedAnswer("");
                         }}
-                        className={`w-full p-3 text-xs text-left rounded-xl border transition-all cursor-pointer ${
+                        className={`w-full p-2.5 text-[11px] text-left rounded-lg border transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-slate-900/80 border-blue-500/40 text-blue-300 font-semibold"
-                            : "bg-slate-950 border-slate-900 hover:border-slate-800 text-slate-400 hover:text-slate-200"
+                            ? "bg-forest-50/50 border-forest-600 text-forest-900 font-semibold"
+                            : "bg-white border-slate-200/60 text-slate-500 hover:text-slate-800 hover:border-forest-500"
                         }`}
                       >
                         {q}
@@ -481,7 +712,7 @@ const LandingPage = () => {
                   })}
                 </div>
 
-                <div className="relative pt-2">
+                <div className="relative pt-1">
                   <input
                     type="text"
                     value={currentQuery}
@@ -491,22 +722,22 @@ const LandingPage = () => {
                       setDisplayedAnswer("");
                     }}
                     placeholder="Type a custom query..."
-                    className="w-full pl-4 pr-10 py-3 text-xs rounded-xl bg-slate-950 border border-slate-900 text-slate-100 placeholder-slate-600 focus:border-cyan-500/60 focus:outline-none transition-all"
+                    className="input-field w-full pl-3 pr-8 py-2 text-xs placeholder-slate-400"
                   />
                   <button
                     onClick={handleSimulate}
                     disabled={!currentQuery.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-cyan-400 hover:bg-cyan-500 text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="absolute right-1.5 top-[60%] -translate-y-1/2 p-1.5 rounded bg-forest-600 hover:bg-forest-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0 shadow-md shadow-forest-100"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3 h-3" />
                   </button>
                 </div>
 
                 <button
                   onClick={handleSimulate}
-                  className="w-full py-3.5 rounded-2xl font-bold text-sm bg-gradient-to-r from-cyan-400 to-blue-500 text-black hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 shadow-md shadow-cyan-500/10 flex items-center justify-center gap-2 cursor-pointer"
+                  className="btn-forest w-full py-2.5 text-xs shadow-md shadow-forest-100"
                 >
-                  <Play className="w-4 h-4 fill-current" /> Run RAG Simulation
+                  <Play className="w-3.5 h-3.5 fill-current" /> Run RAG Simulation
                 </button>
               </div>
 
@@ -514,43 +745,43 @@ const LandingPage = () => {
 
             {/* Visual RAG Pipeline Visualizer Panel (7 cols) */}
             <div className="lg:col-span-7 flex flex-col">
-              <div className="border border-slate-900 bg-slate-950/70 rounded-3xl p-6 flex-1 flex flex-col justify-between shadow-2xl relative min-h-[500px]">
+              <div className="card p-6 flex-1 flex flex-col justify-between relative min-h-[500px] border border-slate-100 shadow-sm bg-white">
                 
-                {/* Visual steps overlay/connector line */}
-                <div className="absolute top-24 left-10 w-0.5 h-[58%] bg-slate-900 pointer-events-none" />
+                {/* Visual steps connector line */}
+                <div className="absolute top-24 left-10 w-0.5 h-[58%] bg-slate-200 pointer-events-none" />
 
                 {/* Pipeline Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-900">
-                  <span className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
-                    <Code2 className="w-4 h-4 text-cyan-400" /> Pipeline Observation Engine
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <span className="text-xs font-semibold text-slate-900 tracking-wide uppercase flex items-center gap-2">
+                    <Code2 className="w-4 h-4 text-forest-600" /> Pipeline Observation Engine
                   </span>
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Sandbox Mode
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-200/60 text-[10px] text-slate-500 font-semibold bg-slate-50">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Sandbox Mode
                   </span>
                 </div>
 
                 {/* Simulation Stages */}
-                <div className="space-y-6 my-6 flex-1">
+                <div className="space-y-6 my-6 flex-1 text-left">
                   
                   {/* Step A: Input / Embedding */}
                   <div className={`flex gap-4 items-start relative transition-all duration-300 ${simStep >= 1 ? "opacity-100" : "opacity-35"}`}>
                     <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 z-10 transition-all font-bold text-xs ${
-                      simStep >= 1 ? "bg-cyan-500 border-cyan-500 text-black" : "bg-slate-950 border-slate-800 text-slate-500"
+                      simStep >= 1 ? "bg-forest-600 border-forest-600 text-white shadow-md shadow-forest-100" : "bg-slate-100 border-slate-200/60 text-slate-400"
                     }`}>
                       1
                     </div>
                     <div className="space-y-1.5 w-full">
-                      <p className="text-xs font-bold text-slate-300">Semantic Query Embedding</p>
+                      <p className="text-xs font-semibold text-slate-800">Semantic Query Embedding</p>
                       {simStep === 1 ? (
-                        <div className="bg-slate-900/60 rounded-xl p-3 border border-cyan-500/25 animate-pulse text-xs text-cyan-400 font-mono flex items-center gap-3">
-                          <Cpu className="w-3.5 h-3.5 animate-spin" /> Vectorizing: &quot;{currentQuery}&quot;
+                        <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/60 text-xs text-slate-700 font-mono flex items-center gap-2 shadow-inner">
+                          <Cpu className="w-3.5 h-3.5 animate-spin text-forest-600" /> Vectorizing: &quot;{currentQuery}&quot;
                         </div>
                       ) : simStep > 1 ? (
-                        <div className="bg-slate-900/40 rounded-xl p-2.5 border border-slate-900 text-[10px] text-slate-400 font-mono max-w-md truncate">
+                        <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/60 text-[10px] text-slate-500 font-mono max-w-md truncate shadow-inner">
                           Query Vector: [0.0815, -0.4721, 0.9912, 0.1254, -0.7301, ...]
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-500 italic">Waiting for simulation...</p>
+                        <p className="text-xs text-slate-400 italic font-medium">Waiting for simulation...</p>
                       )}
                     </div>
                   </div>
@@ -558,15 +789,15 @@ const LandingPage = () => {
                   {/* Step B: Vector Similarity Search */}
                   <div className={`flex gap-4 items-start relative transition-all duration-300 ${simStep >= 2 ? "opacity-100" : "opacity-35"}`}>
                     <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 z-10 transition-all font-bold text-xs ${
-                      simStep >= 2 ? "bg-cyan-500 border-cyan-500 text-black" : "bg-slate-950 border-slate-800 text-slate-500"
+                      simStep >= 2 ? "bg-forest-600 border-forest-600 text-white shadow-md shadow-forest-100" : "bg-slate-100 border-slate-200/60 text-slate-400"
                     }`}>
                       2
                     </div>
                     <div className="space-y-2 w-full">
-                      <p className="text-xs font-bold text-slate-300">Vector Search Retrieval</p>
+                      <p className="text-xs font-semibold text-slate-800">Vector Search Retrieval</p>
                       {simStep === 2 ? (
-                        <div className="bg-slate-900/60 rounded-xl p-3 border border-cyan-500/25 animate-pulse text-xs text-cyan-400 font-mono flex items-center gap-2">
-                          <Database className="w-3.5 h-3.5 animate-bounce" /> Searching vector store (Cosine Similarity)...
+                        <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/60 text-xs text-slate-700 font-mono flex items-center gap-2 shadow-inner">
+                          <Database className="w-3.5 h-3.5 animate-bounce text-forest-600" /> Searching vector store...
                         </div>
                       ) : simStep > 2 ? (
                         <div className="space-y-2">
@@ -574,19 +805,19 @@ const LandingPage = () => {
                             .filter(chunk => chunk.text.toLowerCase().includes(currentQuery.toLowerCase().split(" ")[0]) || chunk.id === 1)
                             .slice(0, 2)
                             .map((chunk, idx) => (
-                              <div key={chunk.id} className="bg-[#090E1D] border border-cyan-500/10 rounded-xl p-3 flex items-start justify-between gap-4">
+                              <div key={chunk.id} className="bg-slate-50 border border-slate-200/60 rounded-lg p-3 flex items-start justify-between gap-4 shadow-inner">
                                 <div className="space-y-1">
-                                  <span className="text-[9px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded font-mono">Chunk #{chunk.id}</span>
-                                  <p className="text-xs text-slate-300 leading-relaxed pt-1 font-sans">{chunk.text}</p>
+                                  <span className="text-[9px] bg-forest-50 border border-forest-100 text-forest-700 px-2 py-0.5 rounded font-mono font-medium">Chunk #{chunk.id}</span>
+                                  <p className="text-xs text-slate-700 leading-relaxed pt-1 font-sans text-left">{chunk.text}</p>
                                 </div>
-                                <span className="text-[10px] text-emerald-400 font-bold font-mono bg-emerald-950/20 px-2 py-0.5 border border-emerald-500/15 rounded">
+                                <span className="text-[10px] text-emerald-700 font-semibold font-mono bg-emerald-50 px-2 py-0.5 border border-emerald-100 rounded-md">
                                   {idx === 0 ? "94.2% Match" : "78.5% Match"}
                                 </span>
                               </div>
                             ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-500 italic">Waiting for simulation...</p>
+                        <p className="text-xs text-slate-400 italic font-medium">Waiting for simulation...</p>
                       )}
                     </div>
                   </div>
@@ -594,24 +825,24 @@ const LandingPage = () => {
                   {/* Step C: Context Construction & Prompt Injection */}
                   <div className={`flex gap-4 items-start relative transition-all duration-300 ${simStep >= 3 ? "opacity-100" : "opacity-35"}`}>
                     <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 z-10 transition-all font-bold text-xs ${
-                      simStep >= 3 ? "bg-cyan-500 border-cyan-500 text-black" : "bg-slate-950 border-slate-800 text-slate-500"
+                      simStep >= 3 ? "bg-forest-600 border-forest-600 text-white shadow-md shadow-forest-100" : "bg-slate-100 border-slate-200/60 text-slate-400"
                     }`}>
                       3
                     </div>
                     <div className="space-y-1.5 w-full">
-                      <p className="text-xs font-bold text-slate-300">Prompt Context Injection</p>
+                      <p className="text-xs font-semibold text-slate-800">Prompt Context Injection</p>
                       {simStep === 3 ? (
-                        <div className="bg-slate-900/60 rounded-xl p-3 border border-cyan-500/25 animate-pulse text-xs text-cyan-400 font-mono flex items-center gap-2">
-                          <GitBranch className="w-3.5 h-3.5 animate-pulse" /> Structuring Prompt Context...
+                        <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/60 text-xs text-slate-700 font-mono flex items-center gap-2 shadow-inner">
+                          <GitBranch className="w-3.5 h-3.5 animate-pulse text-forest-600" /> Structuring Prompt Context...
                         </div>
                       ) : simStep > 3 ? (
-                        <div className="bg-[#0D1224]/80 rounded-xl p-3 border border-slate-900 text-[10px] text-slate-400 font-mono max-h-24 overflow-y-auto leading-relaxed">
-                          <span className="text-blue-400">&lt;system_instructions&gt;</span> Answer the user query using only the provided context. If unsure, do not hallucinate.<br />
-                          <span className="text-blue-400">&lt;knowledge_context&gt;</span> {docData.chunks[0].text}<br />
-                          <span className="text-blue-400">&lt;user_query&gt;</span> {currentQuery}
+                        <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/60 text-[10px] text-slate-500 font-mono max-h-24 overflow-y-auto leading-relaxed shadow-inner">
+                          <span className="text-forest-600 font-semibold">&lt;system_instructions&gt;</span> Answer the user query using only the provided context. If unsure, do not hallucinate.<br />
+                          <span className="text-forest-600 font-semibold">&lt;knowledge_context&gt;</span> {docData.chunks[0].text}<br />
+                          <span className="text-forest-600 font-semibold">&lt;user_query&gt;</span> {currentQuery}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-500 italic">Waiting for simulation...</p>
+                        <p className="text-xs text-slate-400 italic font-medium">Waiting for simulation...</p>
                       )}
                     </div>
                   </div>
@@ -619,18 +850,18 @@ const LandingPage = () => {
                 </div>
 
                 {/* Output Console Box (Step D) */}
-                <div className="bg-slate-950 border border-slate-900 rounded-2xl p-4 mt-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-300 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 mt-2 shadow-inner text-left">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-forest-600 animate-pulse" />
                     Generated AI Response
                   </div>
-                  <div className="bg-[#090D18] rounded-xl p-3 min-h-[70px] flex items-start border border-slate-900">
+                  <div className="bg-white rounded-lg p-3 min-h-[70px] flex items-start border border-slate-200/60 shadow-sm">
                     {displayedAnswer ? (
-                      <p className="text-xs font-medium text-slate-200 leading-relaxed font-sans">{displayedAnswer}</p>
+                      <p className="text-xs font-medium text-slate-800 leading-relaxed font-sans text-left">{displayedAnswer}</p>
                     ) : simStep === 4 ? (
-                      <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-forest-600 border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <p className="text-xs text-slate-600 italic">AI Response will stream here once simulation completes.</p>
+                      <p className="text-xs text-slate-400 italic font-medium">AI Response will stream here once simulation completes.</p>
                     )}
                   </div>
                 </div>
@@ -641,90 +872,111 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* ── Features Showcase Grid ── */}
-        <section id="features" className="py-24 px-6 max-w-7xl mx-auto relative border-t border-slate-900/60">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/10 text-xs text-cyan-400 font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" /> Capabilities
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white">Built for High-Growth Teams</h2>
-            <p className="text-slate-400 leading-relaxed">
-              Every detail is tuned for speed, isolation, security, and developer convenience.
-            </p>
+        {/* ── Capability Comparison Section ("Why Contexta-AI?") ── */}
+        <section className="py-20 px-6 max-w-4xl mx-auto border-t border-slate-200/50">
+          <div className="text-center mb-12 space-y-3">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-display">Why Contexta-AI?</h2>
+            <p className="text-slate-500 font-medium">Compare how verified knowledge RAG outclasses standard mechanisms.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: Bot, title: "Context-Aware Agents", desc: "Deploy bots that resolve tickets with precise semantic knowledge, eliminating hallucination entirely.", color: "from-cyan-400 to-blue-500" },
-              { icon: Database, title: "Isolated Vector Store", desc: "Separate vector stores per account powered by light-weight FAISS indices for maximum tenant isolation.", color: "from-emerald-400 to-teal-500" },
-              { icon: GitBranch, title: "Dynamic Chunking", desc: "Smart text splitter with customized overlap parameters maintains continuity of complex terms.", color: "from-blue-400 to-indigo-500" },
-              { icon: BarChart3, title: "Actionable Analytics", desc: "Track response rate, average resolution time, token usage, and user satisfaction scores in real-time.", color: "from-purple-400 to-pink-500" },
-              { icon: Rocket, title: "CD / Multi-model", desc: "Swap LLMs seamlessly (Gemini-2.5, Pro models) with zero refactoring and rolling infrastructure updates.", color: "from-orange-400 to-red-500" },
-              { icon: Shield, title: "End-To-End Security", desc: "All files hashed, isolated, and encrypted. Secure JWT authorization protects every endpoint from unauthorized access.", color: "from-yellow-400 to-amber-500" }
-            ].map((f, i) => (
-              <div
-                key={f.title}
-                className="group border border-slate-900/80 bg-slate-950/40 hover:border-slate-800/80 hover:bg-slate-950/90 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                <div className={`w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform`}>
-                  <f.icon className="w-5 h-5 text-cyan-400" />
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider">
+                  <th className="py-4 px-4">Capability</th>
+                  <th className="py-4 px-4">Traditional FAQ</th>
+                  <th className="py-4 px-4">Generic LLM</th>
+                  <th className="py-4 px-4 text-forest-700 bg-forest-50/50 rounded-t-lg">Contexta-AI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tr>
+                  <td className="py-4 px-4 font-semibold text-slate-950">Context Awareness</td>
+                  <td className="py-4 px-4 text-red-500">None</td>
+                  <td className="py-4 px-4">Partial</td>
+                  <td className="py-4 px-4 text-forest-700 bg-forest-50/50 font-bold flex items-center gap-1.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Full RAG-based
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 font-semibold text-slate-950">Brand Personality</td>
+                  <td className="py-4 px-4">Static</td>
+                  <td className="py-4 px-4">Unpredictable</td>
+                  <td className="py-4 px-4 text-forest-700 bg-forest-50/50 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Authoritative
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 font-semibold text-slate-950">Update Frequency</td>
+                  <td className="py-4 px-4 text-red-500">Manual Edit</td>
+                  <td className="py-4 px-4">Training Required</td>
+                  <td className="py-4 px-4 text-forest-700 bg-forest-50/50 font-bold flex items-center gap-1.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Real-time Sync
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 font-semibold text-slate-950">Technical Accuracy</td>
+                  <td className="py-4 px-4">Low</td>
+                  <td className="py-4 px-4">Prone to Hallucinations</td>
+                  <td className="py-4 px-4 text-forest-700 bg-forest-50/50 rounded-b-lg font-bold flex items-center gap-1.5 animate-pulse">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Citation Verified
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
         {/* ── Pricing Calculator ── */}
-        <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto border-t border-slate-900/60 relative">
+        <section id="pricing" className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200/50 relative">
           
           {/* Header */}
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold text-white">Predictable, Scale-Friendly Pricing</h2>
-            <p className="text-slate-400 leading-relaxed">
-              No hidden fees. Upgrade, downgrade, or cancel at any time.
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-display">Scalable Pricing for Artisanal Growth</h2>
+            <p className="text-slate-500 leading-relaxed font-medium">
+              Start free and scale as your knowledge base expands.
             </p>
 
             {/* Toggle monthly/annual */}
-            <div className="flex justify-center items-center gap-3 pt-4">
-              <span className={`text-xs font-semibold transition-colors ${!isAnnual ? "text-cyan-400" : "text-slate-400"}`}>
+            <div className="flex justify-center items-center gap-3 pt-3">
+              <span className={`text-xs font-semibold transition-colors ${!isAnnual ? "text-slate-900" : "text-slate-500"}`}>
                 Monthly Billing
               </span>
               <button
                 onClick={() => setIsAnnual(!isAnnual)}
-                className="w-12 h-6.5 rounded-full bg-slate-900 border border-slate-850 p-1 flex items-center transition-all cursor-pointer relative"
+                className="w-12 h-6.5 rounded-full bg-slate-100 border border-slate-200/60 p-1 flex items-center transition-all cursor-pointer relative"
               >
-                <div className={`w-4.5 h-4.5 rounded-full bg-cyan-400 transition-all ${
+                <div className={`w-4.5 h-4.5 rounded-full bg-forest-600 transition-all ${
                   isAnnual ? "translate-x-5.5" : "translate-x-0"
                 }`} />
               </button>
-              <span className={`text-xs font-semibold transition-colors flex items-center gap-1.5 ${isAnnual ? "text-cyan-400" : "text-slate-400"}`}>
-                Annual Billing <span className="bg-emerald-950 border border-emerald-500/10 text-[9px] font-bold text-emerald-400 px-2 py-0.5 rounded-full">Save 20%</span>
+              <span className={`text-xs font-semibold transition-colors flex items-center gap-1.5 ${isAnnual ? "text-slate-900" : "text-slate-500"}`}>
+                Annual Billing <span className="bg-forest-550 border border-forest-100 text-[9px] font-bold text-white bg-forest-600 px-2 py-0.5 rounded-full">Save 20%</span>
               </span>
             </div>
           </div>
 
           {/* Pricing Grid */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
             
             {/* Tier 1: Starter */}
-            <div className="border border-slate-900 bg-slate-950/40 rounded-3xl p-8 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 relative">
+            <div className="card p-8 flex flex-col justify-between hover:border-slate-200 transition-all duration-200 text-left border border-slate-100 shadow-sm bg-white">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Starter</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 font-display">Starter</h3>
                   <p className="text-xs text-slate-500 mt-1">For testing and personal sandbox systems</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">$0</span>
+                  <span className="text-4xl font-bold text-slate-900 font-display">$0</span>
                   <span className="text-xs text-slate-500">/ forever</span>
                 </div>
-                <hr className="border-slate-900" />
-                <ul className="space-y-3.5 text-xs text-slate-300">
-                  {["1 Document (PDF)", "1 Active Chat Widget", "Max 1,000 queries / month", "Standard Gemini-2.0-Flash model", "Community Discord support"].map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-cyan-400 shrink-0" /> {item}
+                <hr className="border-slate-100" />
+                <ul className="space-y-3.5 text-xs text-slate-650 list-none p-0">
+                  {["100 Knowledge Documents", "250 AI Queries / min", "Basic Widget Styles"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 font-medium">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                     </li>
                   ))}
                 </ul>
@@ -732,42 +984,39 @@ const LandingPage = () => {
               <div className="pt-8">
                 <Link
                   to="/signup"
-                  className="w-full py-3 rounded-xl border border-slate-850 hover:border-slate-650 hover:bg-slate-900/20 font-bold text-xs text-slate-200 hover:text-white transition-all block text-center"
+                  className="btn-forest-secondary w-full py-2.5 text-xs shadow-sm no-underline"
                 >
-                  Deploy Free Sandbox
+                  Get Started
                 </Link>
               </div>
             </div>
 
             {/* Tier 2: Pro (Featured) */}
-            <div className="border border-cyan-500/35 bg-slate-950/80 rounded-3xl p-8 flex flex-col justify-between hover:border-cyan-400/50 shadow-2xl shadow-cyan-500/5 relative transform md:-translate-y-2">
-              <div className="absolute top-0 right-8 -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+            <div className="card border-2 border-forest-600 p-8 flex flex-col justify-between hover:border-forest-750 shadow-lg shadow-forest-50 relative transform md:-translate-y-2 text-left bg-white">
+              <div className="absolute top-0 right-8 -translate-y-1/2 bg-forest-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md shadow-forest-100">
                 Most Popular
               </div>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Pro Developer</h3>
-                  <p className="text-xs text-cyan-400/80 mt-1">For running live production customer widgets</p>
+                  <h3 className="text-lg font-semibold text-slate-900 font-display">Professional</h3>
+                  <p className="text-xs text-slate-500 mt-1">For scaling support teams</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black text-white">
-                    ${isAnnual ? "39" : "49"}
+                  <span className="text-4xl font-bold text-slate-900 font-display">
+                    ${isAnnual ? "399" : "499"}
                   </span>
                   <span className="text-xs text-slate-500">/ month</span>
                 </div>
-                <hr className="border-slate-800" />
-                <ul className="space-y-3.5 text-xs text-slate-200 font-medium">
+                <hr className="border-slate-100" />
+                <ul className="space-y-3.5 text-xs text-slate-600 font-medium list-none p-0">
                   {[
-                    "Up to 25 Documents (PDF)",
-                    "5 Active Chat Widgets",
-                    "Max 50,000 queries / month",
-                    "Support for Gemini-2.5-Flash & Pro models",
-                    "Real-time analytics dashboard",
-                    "Embeddable custom widget CDN link",
-                    "Email Support (24h SLA)"
+                    "Unlimited Documents",
+                    "10k AI Queries / min",
+                    "Slack & Zendesk Integration",
+                    "Custom Brand Persona"
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-cyan-400 shrink-0" /> {item}
+                    <li key={item} className="flex items-center gap-2 font-semibold">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                     </li>
                   ))}
                 </ul>
@@ -775,39 +1024,33 @@ const LandingPage = () => {
               <div className="pt-8">
                 <Link
                   to="/signup"
-                  className="w-full py-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-350 hover:to-blue-450 text-black font-extrabold text-xs rounded-xl transition-transform active:scale-98 block text-center shadow-lg shadow-cyan-500/10"
+                  className="btn-forest w-full py-2.5 text-xs shadow-md shadow-forest-100 no-underline"
                 >
-                  Start 14-Day Free Trial
+                  Go Professional
                 </Link>
               </div>
             </div>
 
             {/* Tier 3: Enterprise */}
-            <div className="border border-slate-900 bg-slate-950/40 rounded-3xl p-8 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 relative">
+            <div className="card p-8 flex flex-col justify-between hover:border-slate-200 transition-all duration-200 text-left border border-slate-100 shadow-sm bg-white">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Enterprise</h3>
-                  <p className="text-xs text-slate-500 mt-1">For high volume traffic & custom setups</p>
+                  <h3 className="text-lg font-semibold text-slate-900 font-display">Enterprise</h3>
+                  <p className="text-xs text-slate-500 mt-1">Custom solutions for heavy users</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">
-                    ${isAnnual ? "159" : "199"}
-                  </span>
-                  <span className="text-xs text-slate-500">/ month</span>
+                  <span className="text-4xl font-bold text-slate-900 font-display">Custom</span>
                 </div>
-                <hr className="border-slate-900" />
-                <ul className="space-y-3.5 text-xs text-slate-300">
+                <hr className="border-slate-100" />
+                <ul className="space-y-3.5 text-xs text-slate-600 list-none p-0">
                   {[
-                    "Unlimited Documents",
-                    "Unlimited Chat Widgets",
-                    "Unlimited Queries / Month",
-                    "Custom LLM API route selection",
-                    "Priority Vector Storage Rebuilds",
-                    "API access & analytics webhooks",
-                    "Dedicated support manager (Slack/Meet)"
+                    "Dedicated Vector Database",
+                    "GDPR & HIPAA Compliance",
+                    "On-prem Deployment",
+                    "24/7 Priority Support"
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-cyan-400 shrink-0" /> {item}
+                    <li key={item} className="flex items-center gap-2 font-medium">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                     </li>
                   ))}
                 </ul>
@@ -815,9 +1058,9 @@ const LandingPage = () => {
               <div className="pt-8">
                 <Link
                   to="/signup"
-                  className="w-full py-3 rounded-xl border border-slate-850 hover:border-slate-650 hover:bg-slate-900/20 font-bold text-xs text-slate-200 hover:text-white transition-all block text-center"
+                  className="btn-forest-secondary w-full py-2.5 text-xs shadow-sm no-underline"
                 >
-                  Contact Sales Team
+                  Contact Sales
                 </Link>
               </div>
             </div>
@@ -826,17 +1069,14 @@ const LandingPage = () => {
         </section>
 
         {/* ── Interactive FAQ Section ── */}
-        <section id="faq" className="py-24 px-6 max-w-4xl mx-auto border-t border-slate-900/60 relative">
+        <section id="faq" className="py-20 px-6 max-w-4xl mx-auto border-t border-slate-200/50 relative">
           
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 tracking-wider uppercase">
-              <HelpCircle className="w-4 h-4" /> FAQ
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white">Frequently Asked Questions</h2>
-            <p className="text-slate-400">Everything you need to know about Contexta-AI infrastructure</p>
+          <div className="text-center mb-12 space-y-3">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-display">Frequently Asked Questions</h2>
+            <p className="text-slate-500 font-medium">Everything you need to know about Contexta-AI infrastructure</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 text-left">
             {[
               { q: "How does the PDF vector index work?", a: "When you upload a PDF file, our server extracts the raw text contents, splits the text into chunks of 1000 characters (with overlapping sections to preserve context), and computes an embedding vector using Google's generative models. These vectors are loaded into a FAISS index which supports lightning-fast cosine similarity lookups during chatbot conversations." },
               { q: "Is my data securely isolated from other users?", a: "Yes. Contexta-AI uses tenant isolation. Every user gets their own dedicated sub-directory for physical PDF storage and isolated FAISS index instances. Your vector embeddings are never pooled with, searched against, or exposed to other accounts." },
@@ -848,19 +1088,19 @@ const LandingPage = () => {
               return (
                 <div
                   key={idx}
-                  className="border border-slate-900 bg-slate-950/30 rounded-2xl overflow-hidden hover:border-slate-800 transition-colors"
+                  className="card overflow-hidden hover:border-forest-600 transition-colors bg-white border border-slate-100 shadow-sm"
                 >
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
-                    className="w-full flex justify-between items-center p-5 text-left font-bold text-sm md:text-base text-white hover:text-cyan-400 transition-colors cursor-pointer"
+                    className="w-full flex justify-between items-center p-4 text-left font-semibold text-sm md:text-base text-slate-800 transition-colors cursor-pointer border-0 bg-transparent"
                   >
                     <span>{faq.q}</span>
-                    {isOpen ? <ChevronUp className="w-5 h-5 text-cyan-400" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                    {isOpen ? <ChevronUp className="w-4 h-4 text-forest-600" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                   </button>
-                  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isOpen ? "max-h-56 opacity-100 border-t border-slate-900" : "max-h-0 opacity-0 pointer-events-none"
+                  <div className={`transition-all duration-200 ease-in-out overflow-hidden ${
+                    isOpen ? "max-h-56 opacity-100 border-t border-slate-100" : "max-h-0 opacity-0 pointer-events-none"
                   }`}>
-                    <p className="p-5 text-xs md:text-sm text-slate-400 leading-relaxed bg-slate-950/70">
+                    <p className="p-4 text-xs md:text-sm text-slate-600 leading-relaxed bg-slate-50/50 font-medium">
                       {faq.a}
                     </p>
                   </div>
@@ -872,23 +1112,26 @@ const LandingPage = () => {
         </section>
 
         {/* ── Final CTA ── */}
-        <section className="py-24 px-6 max-w-5xl mx-auto text-center relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent rounded-3xl blur-3xl pointer-events-none" />
-          <div className="border border-slate-900/60 bg-slate-950/50 rounded-3xl py-16 px-8 lg:px-16 space-y-6 relative overflow-hidden shadow-2xl">
-            
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">Ready to Deploy Contextual Support?</h2>
-            <p className="text-slate-400 max-w-md mx-auto text-xs md:text-sm leading-relaxed">
-              Join engineering teams shipping accurate, secure, and RAG-integrated customer support systems with Contexta-AI.
+        <section className="py-20 px-6 max-w-5xl mx-auto text-center relative">
+          <div className="card py-16 px-8 lg:px-16 space-y-6 relative overflow-hidden bg-forest-600 text-white border-0 shadow-xl">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white font-display">
+              Ready to Automate Customer Support?
+            </h2>
+            <p className="text-forest-100/90 max-w-md mx-auto text-xs md:text-sm leading-relaxed font-semibold font-sans">
+              Join 200+ enterprise teams building trust-worthy knowledge systems with Contexta-AI.
             </p>
-            <div className="pt-4 flex justify-center">
+            <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 to="/signup"
-                className="px-8 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-extrabold rounded-xl shadow-lg shadow-cyan-500/10 hover:shadow-cyan-400/25 transition-all duration-300 hover:scale-[1.02] flex items-center gap-2 group"
+                className="btn-forest bg-white text-forest-900 hover:bg-forest-50 px-6 py-3 font-semibold shadow-md shadow-forest-950/30 no-underline"
               >
-                Create Account <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Try Started Free
+              </Link>
+              <Link
+                to="/signup"
+                className="btn-forest border border-white hover:bg-forest-700 px-6 py-3 font-semibold no-underline"
+              >
+                Book Enterprise Demo
               </Link>
             </div>
           </div>
@@ -897,34 +1140,34 @@ const LandingPage = () => {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-slate-900 bg-slate-950/70 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+      <footer className="border-t border-slate-100 bg-slate-50 relative z-10 font-sans">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-left">
             <div className="col-span-2 space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-                  <Bot className="w-4.5 h-4.5 text-black stroke-[2.5]" />
+                <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center shadow-md shadow-forest-100">
+                  <Bot className="w-4.5 h-4.5 text-white stroke-[2]" />
                 </div>
-                <span className="text-lg font-bold tracking-tight text-white">Contexta<span className="text-cyan-400">-AI</span></span>
+                <span className="text-lg font-bold tracking-tight text-slate-900 font-display">Contexta-AI</span>
               </div>
-              <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
-                Enterprise-grade RAG pipelines and vector database index engines for developers.
+              <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-medium">
+                Empowering enterprise with custom AI infrastructure. Built for the artisanal enterprise.
               </p>
-              <div className="flex items-center gap-2 text-[10px] text-emerald-400 font-bold font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> All Systems Operational
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-650 font-semibold font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Operational
               </div>
             </div>
             {[
-              { t: "Platform", l: ["Features", "RAG Engine", "Pricing", "Security"] },
-              { t: "Documentation", l: ["API Reference", "SDKs", "CDN Widgets", "Status"] },
-              { t: "Company", l: ["About Us", "Blog", "Contact", "Privacy"] }
+              { t: "Product", l: ["Features", "Integrations", "Pricing", "Changelog"] },
+              { t: "Developers", l: ["Documentation", "API Reference", "Status"] },
+              { t: "Company", l: ["About Us", "Careers", "Blog", "Press"] }
             ].map((col) => (
-              <div key={col.t} className="space-y-4">
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{col.t}</h4>
-                <ul className="space-y-2.5 text-xs text-slate-400">
+              <div key={col.t} className="space-y-3">
+                <h4 className="text-xs font-semibold tracking-wider text-slate-400 uppercase">{col.t}</h4>
+                <ul className="space-y-2 text-xs text-slate-500 list-none p-0 font-semibold">
                   {col.l.map((link) => (
                     <li key={link}>
-                      <a href="#" className="hover:text-cyan-400 transition-colors duration-200">{link}</a>
+                      <a href="#" className="hover:text-forest-600 transition-colors duration-200 no-underline">{link}</a>
                     </li>
                   ))}
                 </ul>
@@ -932,13 +1175,8 @@ const LandingPage = () => {
             ))}
           </div>
           
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-12 pt-8 border-t border-slate-900 gap-4">
-            <span className="text-[11px] text-slate-650">© 2026 Contexta-AI. All rights reserved.</span>
-            <div className="flex gap-6 text-[11px] text-slate-600">
-              {["Terms of Service", "Privacy Policy", "SLA Status"].map((l) => (
-                <a key={l} href="#" className="hover:text-cyan-400 transition-colors duration-200">{l}</a>
-              ))}
-            </div>
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-6 border-t border-slate-200/60 gap-4">
+            <span className="text-[10px] text-slate-400 font-semibold">© 2026 Contexta-AI. All rights reserved. Built for the artisanal enterprise.</span>
           </div>
         </div>
       </footer>
@@ -946,31 +1184,31 @@ const LandingPage = () => {
       {/* ── Floating Chatbot Widget Demo ── */}
       <div className="fixed bottom-6 right-6 z-[99] flex flex-col items-end">
         {isChatOpen ? (
-          <div className="w-[360px] max-w-[calc(100vw-2rem)] h-[480px] bg-[#090D1A]/95 border border-slate-900 rounded-3xl flex flex-col shadow-2xl backdrop-blur-md overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="card w-[360px] max-w-[calc(100vw-2rem)] h-[480px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 bg-white border border-slate-100">
             {/* Header */}
-            <div className="bg-[#0e1426] px-4 py-3.5 flex justify-between items-center border-b border-slate-900">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/10">
-                  <Bot className="w-4.5 h-4.5 text-black stroke-[2.5]" />
+            <div className="bg-slate-50 px-4 py-3 flex justify-between items-center border-b border-slate-100">
+              <div className="flex items-center gap-2.5 text-left">
+                <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center shadow-md shadow-forest-100">
+                  <Bot className="w-4 h-4 text-white stroke-[2]" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-white">Contexta-AI Support</h4>
+                  <h4 className="text-xs font-semibold text-slate-900">Contexta-AI Support</h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] text-slate-400 font-medium">Always online (RAG Demo)</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span className="text-[10px] text-slate-500 font-medium">Always online (RAG Demo)</span>
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setIsChatOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer border-0 bg-transparent"
               >
-                <X className="w-4.5 h-4.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col bg-slate-50/60 text-left">
               {chatMessages.map((m) => (
                 <div
                   key={m.id}
@@ -979,17 +1217,17 @@ const LandingPage = () => {
                   }`}
                 >
                   <div
-                    className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[10px] ${
-                      m.sender === "user" ? "bg-cyan-950 text-cyan-400" : "bg-slate-900 text-slate-400"
+                    className={`w-6 h-6 rounded shrink-0 flex items-center justify-center text-[10px] shadow-sm ${
+                      m.sender === "user" ? "bg-forest-600 text-white" : "bg-white border border-slate-100 text-slate-500"
                     }`}
                   >
                     {m.sender === "user" ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                   </div>
                   <div
-                    className={`rounded-2xl p-3 text-xs leading-relaxed ${
+                    className={`rounded-xl p-2.5 text-xs leading-relaxed ${
                       m.sender === "user"
-                        ? "bg-gradient-to-br from-cyan-400 to-blue-500 text-black font-semibold rounded-tr-none"
-                        : "bg-[#0c1224] text-slate-200 border border-slate-900 rounded-tl-none"
+                        ? "bg-forest-600 text-white font-medium shadow-md shadow-forest-50"
+                        : "bg-white text-slate-800 border border-slate-100 shadow-sm"
                     }`}
                   >
                     {m.text}
@@ -999,13 +1237,13 @@ const LandingPage = () => {
 
               {isChatTyping && (
                 <div className="flex gap-2 self-start max-w-[85%]">
-                  <div className="w-6 h-6 rounded-md shrink-0 bg-slate-900 text-slate-400 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded shrink-0 bg-white border border-slate-100 text-slate-500 flex items-center justify-center shadow-sm">
                     <Bot className="w-3.5 h-3.5" />
                   </div>
-                  <div className="bg-[#0c1224] border border-slate-900 rounded-2xl rounded-tl-none p-3 flex gap-1 items-center">
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" />
+                  <div className="bg-white border border-slate-100 rounded-xl p-2.5 flex gap-1 items-center shadow-sm">
+                    <span className="w-1.5 h-1.5 bg-forest-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 bg-forest-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 bg-forest-600 rounded-full animate-bounce" />
                   </div>
                 </div>
               )}
@@ -1013,7 +1251,7 @@ const LandingPage = () => {
             </div>
 
             {/* Quick Actions Suggestions */}
-            <div className="px-4 py-2 flex flex-wrap gap-1.5 bg-slate-950 border-t border-slate-900">
+            <div className="px-4 py-2 flex flex-wrap gap-1.5 bg-slate-50 border-t border-slate-100 font-sans">
               {[
                 { label: "Restocking fee?", query: "What is the restocking fee?" },
                 { label: "API rate limits?", query: "What are the API rate limits?" },
@@ -1022,7 +1260,7 @@ const LandingPage = () => {
                 <button
                   key={q.label}
                   onClick={() => handleChatSend(q.query)}
-                  className="bg-[#090D1A] hover:bg-slate-900 text-[10px] text-cyan-400 border border-cyan-500/10 hover:border-cyan-400/40 rounded-full px-2.5 py-1.5 transition-all cursor-pointer font-medium"
+                  className="bg-white hover:bg-forest-50 text-[10px] text-slate-650 hover:text-forest-700 border border-slate-200/60 hover:border-forest-200 rounded-full px-2.5 py-1 transition-all cursor-pointer font-semibold shadow-sm"
                 >
                   {q.label}
                 </button>
@@ -1035,19 +1273,19 @@ const LandingPage = () => {
                 e.preventDefault();
                 handleChatSend();
               }}
-              className="bg-[#0e1426] p-3 border-t border-slate-900 flex gap-2 items-center"
+              className="bg-white p-3 border-t border-slate-100 flex gap-2 items-center"
             >
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Ask support chatbot..."
-                className="flex-1 bg-[#090D1A] border border-slate-900 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500/50 text-slate-200 placeholder-slate-600 font-medium"
+                className="input-field flex-1 px-3 py-1.5 text-xs placeholder-slate-400 font-medium"
               />
               <button
                 type="submit"
                 disabled={!chatInput.trim()}
-                className="p-2 rounded-xl bg-cyan-400 text-black hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md"
+                className="btn-forest p-1.5 rounded-lg shadow-md shadow-forest-100"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -1056,13 +1294,12 @@ const LandingPage = () => {
         ) : (
           <button
             onClick={() => setIsChatOpen(true)}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-black flex items-center justify-center shadow-xl shadow-cyan-500/15 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer relative group"
+            className="w-12 h-12 rounded-full bg-forest-600 hover:bg-forest-700 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer relative group border-0 shadow-forest-200"
           >
-            <span className="absolute -top-1.5 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-400" />
+            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white" />
             </span>
-            <MessageSquare className="w-6 h-6 stroke-[2]" />
+            <MessageSquare className="w-5 h-5 stroke-[2]" />
           </button>
         )}
       </div>
@@ -1070,5 +1307,55 @@ const LandingPage = () => {
     </div>
   );
 };
+
+// --- Custom local mini icons to prevent bundle size issues ---
+const GlobeIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+    <path d="M2 12h20" />
+  </svg>
+);
+
+const CodeIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <polyline points="16 18 22 12 16 6" />
+    <polyline points="8 6 2 12 8 18" />
+  </svg>
+);
+
+const LockIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
 
 export default LandingPage;

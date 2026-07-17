@@ -34,7 +34,7 @@ const WidgetPage = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-white overflow-hidden">
+    <div className="h-screen w-full bg-slate-50 overflow-hidden">
       <ChatUI onSendMessage={handleSendMessage} title="Customer Support" />
     </div>
   );

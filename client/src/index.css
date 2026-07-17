@@ -1,10 +1,43 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Contexta-AI — Premium SaaS Design System
-   Clean White + Cyan Blue (#38BDF8) + Soft Green (#4ADE80)
+   Contexta-AI — Premium Indigo & Slate Design System
    ============================================================ */
 @theme {
+  /* Brand specific colors mapped to tailwind variables */
+  --color-brand-bg: #F8FAFC;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-border: #E2E8F0;
+  --color-brand-secondary: #64748B;
+  --color-brand-primary: #0F172A;
+  --color-brand-accent: #4F46E5;
+  --color-brand-hover: #4338CA;
+
+  --color-forest-50: #f2f7f5;
+  --color-forest-100: #e2ede9;
+  --color-forest-200: #c5dacd;
+  --color-forest-300: #9cbfae;
+  --color-forest-400: #6ea08b;
+  --color-forest-500: #4a7e6b;
+  --color-forest-600: #2b5c4f;
+  --color-forest-700: #244c41;
+  --color-forest-800: #1d3c33;
+  --color-forest-900: #18312a;
+  --color-forest-950: #0c1815;
+
+  /* Overwrite base tailwind color families for premium appearance */
+  --color-slate-50: #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+  --color-slate-950: #020617;
+
   --color-base-50: #F8FAFC;
   --color-base-100: #F1F5F9;
   --color-base-200: #E2E8F0;
@@ -16,14 +49,32 @@
   --color-base-800: #1E293B;
   --color-base-900: #0F172A;
 
-  --color-accent-50: #F0F9FF;
-  --color-accent-100: #E0F2FE;
-  --color-accent-200: #BAE6FD;
-  --color-accent-300: #7DD3FC;
-  --color-accent-400: #38BDF8;
-  --color-accent-500: #0EA5E9;
-  --color-accent-600: #0284C7;
-  --color-accent-700: #0369A1;
+  --color-cyan-50: #ECFEFF;
+  --color-cyan-100: #CFFAFE;
+  --color-cyan-200: #A5F3FC;
+  --color-cyan-300: #67E8F9;
+  --color-cyan-400: #22D3EE;
+  --color-cyan-500: #06B6D4;
+  --color-cyan-600: #0891B2;
+  --color-cyan-700: #0369A1;
+
+  --color-accent-50: #EEF2FF;
+  --color-accent-100: #E0E7FF;
+  --color-accent-200: #C7D2FE;
+  --color-accent-300: #A5B4FC;
+  --color-accent-400: #818CF8;
+  --color-accent-500: #6366F1;
+  --color-accent-600: #4F46E5;
+  --color-accent-700: #4338CA;
+
+  --color-emerald-50: #ECFDF5;
+  --color-emerald-100: #D1FAE5;
+  --color-emerald-200: #A7F3D0;
+  --color-emerald-300: #6EE7B7;
+  --color-emerald-400: #34D399;
+  --color-emerald-500: #10B981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
 
   --color-green-50: #F0FDF4;
   --color-green-100: #DCFCE7;
@@ -35,24 +86,22 @@
 
   --color-warn-50: #FFFBEB;
   --color-warn-100: #FEF3C7;
+  --color-warn-200: #FDE68A;
   --color-warn-400: #FBBF24;
   --color-warn-500: #F59E0B;
 
   --color-red-50: #FEF2F2;
   --color-red-100: #FEE2E2;
+  --color-red-200: #FCA5A5;
   --color-red-400: #F87171;
   --color-red-500: #EF4444;
 
-
-
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Satoshi", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --animate-fade-in: fade-in 0.6s ease-out both;
-  --animate-slide-up: slide-up 0.6s ease-out both;
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+  --animate-fade-in: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-up: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes fade-in {
@@ -60,67 +109,152 @@
   to   { opacity: 1; }
 }
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); }
-  50%      { box-shadow: 0 0 30px rgba(56, 189, 248, 0.3); }
 }
 
 @layer base {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: var(--font-sans);
-    background: #FFFFFF;
-    color: var(--color-base-900);
+    background: #F8FAFC;
+    color: #334155;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  #root { min-height: 100vh; }
-  ::selection { background-color: var(--color-accent-400); color: white; }
+  #root { min-height: 100vh; background: #F8FAFC; }
+  ::selection { background-color: #C7D2FE; color: #1E1B4B; }
 
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-    -webkit-text-fill-color: var(--color-base-900) !important;
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+    -webkit-text-fill-color: #0F172A !important;
     transition: background-color 5000s ease-in-out 0s;
   }
-  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--color-base-300); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
 }
 
 @utility card {
-  background: #ffffff;
-  border: 1px solid var(--color-base-200);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@utility glass-nav {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--color-base-100);
+@utility input-field {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  &:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+  }
 }
 
-@utility grid-bg {
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
-  background-size: 48px 48px;
+@utility btn-primary {
+  background: #4F46E5;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px 0 rgba(79, 70, 229, 0.05);
+  &:hover {
+    background: #4338CA;
+    transform: translateY(-0.5px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
-@utility accent-glow {
-  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
+@utility btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  &:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #0F172A;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
-@utility accent-glow-sm {
-  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.15);
+@utility btn-forest {
+  background: #2b5c4f;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px 0 rgba(43, 92, 79, 0.1);
+  &:hover {
+    background: #1e3f36;
+    transform: translateY(-0.5px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-forest-secondary {
+  background: #FFFFFF;
+  border: 1px solid #c5dacd;
+  color: #2b5c4f;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  &:hover {
+    background: #f2f7f5;
+    border-color: #9cbfae;
+    color: #1d3c33;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }

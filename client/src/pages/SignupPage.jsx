@@ -57,36 +57,32 @@ const SignupPage = () => {
     }
   };
 
-  const inputCls = "w-full pl-10 pr-4 py-2.5 rounded-xl bg-base-50 border border-base-200 text-base-900 text-sm placeholder-base-400 outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-100 transition-all duration-300";
+    const inputCls = "input-field w-full pl-10 pr-4 py-2.5 text-sm placeholder-slate-400 font-medium";
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-slate-50">
       {/* Left — Dark branding panel */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center px-12 py-16 bg-base-900 relative overflow-hidden">
-        <div className="absolute top-[12%] right-[8%] w-3 h-3 rounded-full bg-accent-400/15 animate-float" />
-        <div className="absolute bottom-[18%] left-[12%] w-2 h-2 rounded-full bg-green-400/15 animate-float" style={{ animationDelay: "3s" }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-400/5 via-transparent to-green-400/5 pointer-events-none" />
-
+      <div className="hidden lg:flex flex-1 flex-col justify-center px-12 py-16 bg-slate-100 border-r border-slate-200/60 relative overflow-hidden">
         <div className="relative z-10 max-w-md">
-          <div className="flex items-center gap-2 mb-12">
-            <div className="w-8 h-8 rounded-lg bg-accent-400 flex items-center justify-center"><Bot className="w-5 h-5 text-white" /></div>
-            <span className="text-lg font-bold text-white">Contexta-AI</span>
+          <div className="flex items-center gap-2.5 mb-10">
+            <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center shadow-md shadow-forest-100"><Bot className="w-4.5 h-4.5 text-white stroke-[2]" /></div>
+            <span className="text-lg font-bold text-slate-900 font-display">Contexta-AI</span>
           </div>
-          <h2 className="text-3xl font-bold text-white leading-tight mb-4">
-            Start building <span className="text-accent-400">AI-powered support</span> in minutes.
+          <h2 className="text-2xl font-bold text-slate-900 leading-tight mb-3 font-display">
+            Start building <span className="text-forest-600">AI-powered support</span> in minutes.
           </h2>
-          <p className="text-base-400 text-sm leading-relaxed mb-10 max-w-sm">
+          <p className="text-slate-500 text-sm leading-relaxed mb-8 max-w-sm font-medium">
             Deploy intelligent agents that understand your product better than anyone.
           </p>
-          <div className="space-y-4">
-            {highlights.map((h, i) => (
-              <div key={h.title} className="flex gap-4 items-start bg-white/5 border border-white/10 rounded-xl p-4 animate-slide-up" style={{ animationDelay: `${i * 0.15}s` }}>
-                <div className="w-9 h-9 rounded-lg bg-accent-400/10 flex items-center justify-center shrink-0">
-                  <h.icon className="w-4 h-4 text-accent-400" />
+          <div className="space-y-3.5">
+            {highlights.map((h) => (
+              <div key={h.title} className="card bg-white border border-slate-200/60 p-4 shadow-sm flex gap-4 items-start hover:border-forest-150">
+                <div className="w-9 h-9 rounded-lg bg-forest-50 border border-forest-100 flex items-center justify-center shrink-0 text-forest-600">
+                  <h.icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-white mb-0.5">{h.title}</h3>
-                  <p className="text-xs text-base-400 leading-relaxed">{h.desc}</p>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-0.5">{h.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium">{h.desc}</p>
                 </div>
               </div>
             ))}
@@ -95,58 +91,58 @@ const SignupPage = () => {
       </div>
 
       {/* Right — Signup form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-slate-50">
         <div className="w-full max-w-sm animate-fade-in">
           <div className="lg:hidden flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-accent-400 flex items-center justify-center"><Bot className="w-5 h-5 text-white" /></div>
-            <span className="text-lg font-bold">Contexta-AI</span>
+            <div className="w-8 h-8 rounded-lg bg-forest-600 flex items-center justify-center shadow-md shadow-forest-100"><Bot className="w-5 h-5 text-white" /></div>
+            <span className="text-lg font-bold text-slate-900 font-display">Contexta-AI</span>
           </div>
 
-          <h1 className="text-2xl font-bold mb-1">Create your account</h1>
-          <p className="text-sm text-base-500 mb-8">Get started for free. No credit card required.</p>
+          <h1 className="text-xl font-bold mb-1 text-slate-900 font-display">Create your account</h1>
+          <p className="text-sm text-slate-500 mb-8 font-medium">Get started for free. No credit card required.</p>
 
-          {error && <div className="mb-6 p-3 rounded-xl bg-red-50 border border-red-100 text-red-500 text-sm">{error}</div>}
+          {error && <div className="mb-6 p-3 rounded-xl bg-red-50 border border-red-200 text-red-650 text-red-600 text-sm font-medium">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-base-700 mb-1.5">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input name="name" type="text" required autoComplete="name" value={formData.name} onChange={handleChange} placeholder="Jane Doe" className={inputCls} />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-base-700 mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} placeholder="you@company.com" className={inputCls} />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-base-700 mb-1.5">Password</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input name="password" type={showPw ? "text" : "password"} required autoComplete="new-password" value={formData.password} onChange={handleChange} placeholder="Min. 6 characters"
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-base-50 border border-base-200 text-base-900 text-sm placeholder-base-400 outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-100 transition-all duration-300" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-base-400 hover:text-base-600 transition-colors cursor-pointer">
+                  className="input-field w-full pl-10 pr-10 py-2.5 text-sm placeholder-slate-400 font-medium" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer border-0 bg-transparent">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-base-700 mb-1.5">Confirm Password</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input name="confirmPassword" type="password" required autoComplete="new-password" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" className={inputCls} />
               </div>
             </div>
             <button type="submit" disabled={isLoading}
-              className="w-full py-2.5 rounded-xl font-semibold text-sm bg-accent-400 text-white hover:bg-accent-500 accent-glow-sm hover:accent-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
+              className="btn-forest w-full py-2.5 text-sm shadow-md shadow-forest-100">
               {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
 
-          <p className="text-center text-sm text-base-400 mt-8">Already have an account?{" "}<Link to="/login" className="text-accent-500 hover:text-accent-600 font-medium transition-colors">Sign in</Link></p>
+          <p className="text-center text-sm text-slate-500 mt-8 font-medium">Already have an account?{" "}<Link to="/login" className="text-forest-600 hover:text-forest-700 font-semibold transition-colors no-underline">Sign in</Link></p>
         </div>
       </div>
     </div>
