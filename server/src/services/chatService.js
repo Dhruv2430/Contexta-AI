@@ -147,7 +147,7 @@ const trimToWordBoundary = (text, maxLength = 700) => {
 };
 
 const getLocalDocumentChunks = async (userId) => {
-  const docs = await Document.find({ uploadedBy: userId })
+  const docs = await Document.find({ uploadedBy: userId, processingStatus: "processed" })
     .select("_id filename originalName extractedText")
     .lean();
 

@@ -1,11 +1,8 @@
 import fs from "fs/promises";
-
 import * as pdfjs from "pdf-parse";
-
-
-
+import path from "path";
+import config from "../config/env.js";
 import Document from "../models/Document.js";
-
 import {
   processDocumentForRAG,
   rebuildVectorStoreForUser,
@@ -57,17 +54,21 @@ export const uploadDocument = async (req, res) => {
     // -------------------------------------------------
     let extractedText = "";
     let pageCount = 0;
+    let extractError = null;
 
     try {
-      const result = await pdfjs.default(fileBuffer);
+      const parser = new pdfjs.PDFParse({ data: fileBuffer });
+      const result = await parser.getText();
 
       extractedText = result.text || "";
-      pageCount = result.numpages || 0;
+      pageCount = result.total || 0;
+
+      if (!extractedText.trim()) {
+        throw new Error("No extractable text found in this PDF");
+      }
     } catch (parseError) {
       console.error("PDF parse error:", parseError.message);
-
-      extractedText =
-        "[Could not extract text from PDF]";
+      extractError = parseError.message;
     }
 
     // -------------------------------------------------
@@ -78,9 +79,10 @@ export const uploadDocument = async (req, res) => {
       originalName: req.file.originalname,
       filepath: req.file.path,
       fileSize: req.file.size,
-      extractedText,
+      extractedText: extractedText || "",
       pageCount,
-      processingStatus: "pending",
+      processingStatus: extractError ? "failed" : "pending",
+      processingError: extractError || "",
       uploadedBy: req.user._id,
     });
 
@@ -89,28 +91,30 @@ export const uploadDocument = async (req, res) => {
     // -------------------------------------------------
     let aiReady = false;
 
-    try {
-      await processDocumentForRAG(
-        document._id,
-        req.user._id
-      );
+    if (!extractError) {
+      try {
+        await processDocumentForRAG(
+          document._id,
+          req.user._id
+        );
 
-      document.processingStatus = "processed";
-      document.processingError = "";
+        document.processingStatus = "processed";
+        document.processingError = "";
 
-      await document.save();
+        await document.save();
 
-      aiReady = true;
-    } catch (ragError) {
-      console.error(
-        "RAG processing failed:",
-        ragError.message
-      );
+        aiReady = true;
+      } catch (ragError) {
+        console.error(
+          "RAG processing failed:",
+          ragError.message
+        );
 
-      document.processingStatus = "failed";
-      document.processingError = ragError.message;
+        document.processingStatus = "failed";
+        document.processingError = ragError.message;
 
-      await document.save();
+        await document.save();
+      }
     }
 
     // -------------------------------------------------
@@ -268,17 +272,46 @@ export const reindexDocument = async (req, res) => {
       });
     }
 
-    if (
-      !document.extractedText ||
-      document.extractedText.trim() === ""
-    ) {
+    // Verify file and load it
+    let fileBuffer;
+    try {
+      fileBuffer = await fs.readFile(document.filepath);
+    } catch (err) {
+      // Check local uploads fallback (e.g. if filepath is pointing to a different environment like Render)
+      const filename = path.basename(document.filepath);
+      const localPath = path.join(config.uploadsDir, filename);
+      try {
+        fileBuffer = await fs.readFile(localPath);
+        document.filepath = localPath;
+      } catch (localErr) {
+        return res.status(400).json({
+          success: false,
+          message: "Physical document file not found on this server. Please delete and re-upload.",
+        });
+      }
+    }
+
+    // Parse the file again
+    let extractedText = "";
+    let pageCount = 0;
+    try {
+      const parser = new pdfjs.PDFParse({ data: fileBuffer });
+      const result = await parser.getText();
+      extractedText = result.text || "";
+      pageCount = result.total || 0;
+      
+      if (!extractedText.trim()) {
+        throw new Error("No extractable text found in this PDF");
+      }
+    } catch (parseError) {
       return res.status(400).json({
         success: false,
-        message:
-          "Document has no extractable text",
+        message: `Failed to extract text from PDF: ${parseError.message}`,
       });
     }
 
+    document.extractedText = extractedText;
+    document.pageCount = pageCount;
     document.processingStatus = "pending";
     document.processingError = "";
 

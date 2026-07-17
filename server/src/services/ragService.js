@@ -52,7 +52,7 @@ const createChunksFromDocuments = async (docs, userId) => {
 };
 
 export const rebuildVectorStoreForUser = async (userId) => {
-  const docs = await Document.find({ uploadedBy: userId });
+  const docs = await Document.find({ uploadedBy: userId, processingStatus: "processed" });
   const chunks = await createChunksFromDocuments(docs, userId);
 
   clearUserVectorStore(userId.toString());
