@@ -705,47 +705,11 @@ export const WidgetEmbedPage = () => (
 
 export const SettingsPage = () => {
   const { user } = useAuth();
-  const { data, error, loading } = useSystemData("/system/api-keys");
-  const defaults = useMemo(() => ({
-    companyName: user?.name ? `${user.name}'s Company` : "My Company",
-    supportEmail: user?.email || "",
-    widgetTitle: "Customer Support",
-    responseMode: "Local-first",
-    monthlyLimit: "200",
-  }), [user]);
-  const [settings, setSettings] = useState(() => {
-    try {
-      const stored = localStorage.getItem("contexta_settings") || localStorage.getItem("nexus_settings") || "{}";
-      return JSON.parse(stored);
-    } catch {
-      return {};
-    }
-  });
-  const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState("");
-  const resolvedSettings = { ...defaults, ...settings };
 
   const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
   const widgetUrl = `${origin}/widget/${user?.id || user?._id || "YOUR_COMPANY_ID"}`;
-
-  const updateField = (field, value) => {
-    setSettings((current) => ({ ...current, [field]: value }));
-    setSaved(false);
-  };
-
-  const saveSettings = () => {
-    localStorage.setItem("contexta_settings", JSON.stringify(resolvedSettings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
-
-  const resetSettings = () => {
-    localStorage.removeItem("contexta_settings");
-    localStorage.removeItem("nexus_settings");
-    setSettings({});
-    setSaved(false);
-  };
 
   const copy = async (value, type) => {
     await navigator.clipboard.writeText(value);
@@ -754,116 +718,7 @@ export const SettingsPage = () => {
   };
 
   return (
-    <PageShell active="Settings" title="Settings" subtitle="Workspace preferences, local URLs, and provider readiness.">
-      <ErrorBox message={error} />
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <section className="card p-6 lg:col-span-2 text-left bg-white border border-slate-200/60 shadow-sm">
-          <Settings className="w-5 h-5 text-forest-600 mb-4" />
-          <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Workspace Settings</h2>
-          <p className="mt-1 text-xs text-slate-500 font-medium">These preferences are saved locally for the demo dashboard.</p>
-
-          <div className="mt-5 grid sm:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-500">Company name</span>
-              <input
-                type="text"
-                value={resolvedSettings.companyName}
-                onChange={(event) => updateField("companyName", event.target.value)}
-                className="input-field w-full px-3 py-2 text-xs mt-1.5"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-500">Support email</span>
-              <input
-                type="email"
-                value={resolvedSettings.supportEmail}
-                onChange={(event) => updateField("supportEmail", event.target.value)}
-                className="input-field w-full px-3 py-2 text-xs mt-1.5"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-500">Widget title</span>
-              <input
-                type="text"
-                value={resolvedSettings.widgetTitle}
-                onChange={(event) => updateField("widgetTitle", event.target.value)}
-                className="input-field w-full px-3 py-2 text-xs mt-1.5"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-500">Monthly free request limit</span>
-              <input
-                type="number"
-                min="1"
-                value={resolvedSettings.monthlyLimit}
-                onChange={(event) => updateField("monthlyLimit", event.target.value)}
-                className="input-field w-full px-3 py-2 text-xs mt-1.5"
-              />
-            </label>
-          </div>
-
-          <div className="mt-5">
-            <p className="text-xs font-semibold text-slate-500 mb-2">Project mode</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {["Local-first", "Cloud-ready"].map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => updateField("responseMode", mode)}
-                  className={`text-left rounded-lg border p-4 transition-all cursor-pointer bg-transparent ${resolvedSettings.responseMode === mode ? "border-2 border-forest-600 bg-forest-50/10" : "border-slate-200 hover:bg-slate-50/50"}`}
-                >
-                  <p className="text-xs font-semibold text-slate-800">{mode}</p>
-                  <p className="mt-1 text-[10px] text-slate-500 font-medium leading-relaxed">
-                    {mode === "Local-first" ? "Use local uploads, MongoDB, and FAISS to control cost." : "Prepared for S3, EC2, and paid billing later."}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <button type="button" onClick={saveSettings} className="btn-forest px-4 py-2 text-xs shadow-md shadow-forest-100">
-              <CheckCircle className="w-4 h-4 text-white" />
-              {saved ? "Saved" : "Save settings"}
-            </button>
-            <button type="button" onClick={resetSettings} className="btn-secondary px-4 py-2 text-xs shadow-sm">
-              Reset defaults
-            </button>
-          </div>
-        </section>
-
-        <section className="card p-6 shadow-sm text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in">
-          <Shield className="w-5 h-5 text-forest-600 mb-4" />
-          <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Provider Status</h2>
-          {loading ? (
-            <div className="mt-5 flex items-center gap-2 text-xs text-slate-500 font-semibold">
-              <Loader2 className="w-4 h-4 animate-spin text-forest-600" />
-              Checking configuration
-            </div>
-          ) : (
-            <div className="mt-5 space-y-4">
-              <div className="flex items-center justify-between gap-3 py-1">
-                <span className="text-xs text-slate-500 font-medium">Gemini API</span>
-                <StatusBadge status={data?.gemini?.configured ? "configured" : "missing"} />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-1">
-                <span className="text-xs text-slate-500 font-medium">MongoDB</span>
-                <StatusBadge status={data?.database?.configured ? "configured" : "missing"} />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-1">
-                <span className="text-xs text-slate-500 font-medium">JWT Auth</span>
-                <StatusBadge status={data?.jwt?.configured ? "configured" : "missing"} />
-              </div>
-              <div className="pt-4 border-t border-slate-100">
-                <p className="text-[10px] text-slate-455 text-slate-400 font-bold uppercase">Chat model</p>
-                <p className="mt-1.5 text-xs font-semibold text-slate-700 break-all">{data?.gemini?.chatModel}</p>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
-
+    <PageShell active="Settings" title="Settings" subtitle="Local application endpoints and environment URLs.">
       <section className="card p-6 text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in">
         <Server className="w-5 h-5 text-forest-600 mb-4" />
         <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Local App URLs</h2>

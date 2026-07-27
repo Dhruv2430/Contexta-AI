@@ -12,9 +12,9 @@ import {
   LogsPage,
   RagPipelinePage,
   SettingsPage,
-  TeamPage,
   WidgetEmbedPage,
 } from "./pages/SystemPages";
+import { PrivacyPolicyPage, TermsOfServicePage, SecurityStatementPage } from "./pages/LegalPages";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const protectedModuleRoutes = [
@@ -23,7 +23,6 @@ const protectedModuleRoutes = [
   { path: "/widget-embed", Component: WidgetEmbedPage },
   { path: "/logs", Component: LogsPage },
   { path: "/billing", Component: BillingPage },
-  { path: "/team", Component: TeamPage },
   { path: "/settings", Component: SettingsPage },
 ];
 
@@ -34,6 +33,9 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
+      <Route path="/security" element={<SecurityStatementPage />} />
 
       {/* Protected routes */}
       <Route

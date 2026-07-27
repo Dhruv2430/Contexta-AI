@@ -28,7 +28,6 @@ const routeMap = {
   "Widget Embed": "/widget-embed",
   Logs: "/logs",
   Billing: "/billing",
-  Team: "/team",
   Settings: "/settings",
 };
 
@@ -44,7 +43,6 @@ const topNav = [
 
 const bottomNav = [
   { icon: CreditCard, label: "Billing" },
-  { icon: Users, label: "Team" },
   { icon: Settings, label: "Settings" },
 ];
 

@@ -34,6 +34,9 @@ import {
   Search,
   Sliders,
   Server,
+  Home,
+  ExternalLink,
+  LayoutDashboard,
 } from "lucide-react";
 import Toast from "../components/Toast";
 
@@ -358,7 +361,10 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-forest-100 selection:text-forest-900 overflow-x-hidden relative">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-forest-100 selection:text-forest-900 overflow-x-hidden relative bg-arch-grid">
+      {/* ── Architectural Radial Mask ── */}
+      <div className="absolute inset-0 bg-radial from-transparent via-slate-50/70 to-slate-50 pointer-events-none" />
+
       {/* ── Navigation Bar ── */}
       <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70 transition-all duration-300">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 h-16">
@@ -435,9 +441,10 @@ const LandingPage = () => {
             {/* Main Title */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] text-slate-900 font-display">
               Transform PDFs into <br />
-              <span className="bg-gradient-to-r from-forest-700 via-forest-600 to-indigo-600 bg-clip-text text-transparent">
-                Precision AI Knowledge
-              </span>
+              <span className="font-serif italic font-normal text-forest-700 underline decoration-forest-200/80 decoration-wavy decoration-2">
+                Precision AI
+              </span>{" "}
+              Knowledge
             </h1>
 
             {/* Sub-headline */}
@@ -472,13 +479,22 @@ const LandingPage = () => {
             </div>
           </motion.div>
 
-          {/* Right Side: Animated Product Frame */}
+          {/* Right Side: Animated Product Frame & Tech Stack Badges */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-6 relative z-10"
           >
+            {/* Floating Portfolio Tech Stack Badges */}
+            <div className="hidden sm:flex absolute -top-5 -right-2 z-20 items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-lg text-[10px] font-mono text-slate-600">
+              <span className="text-forest-700 font-bold">01 // REACT</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-indigo-600 font-bold">02 // NODE.JS</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-amber-600 font-bold">03 // FAISS</span>
+            </div>
+
             <div className="w-full bg-white rounded-2xl border border-slate-200/80 shadow-2xl overflow-hidden group hover:border-forest-200 transition-all duration-300">
               {/* Window Bar */}
               <div className="bg-slate-900 text-slate-400 px-4 py-3 flex items-center justify-between border-b border-slate-800">
@@ -1324,44 +1340,70 @@ const LandingPage = () => {
         )}
       </div>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-slate-200/80 bg-white py-12 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 text-left text-xs font-medium text-slate-500">
-          <div className="col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-forest-600 flex items-center justify-center text-white shadow-xs">
-                <Bot className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-bold text-slate-900 font-display">Contexta-AI</span>
-            </div>
+      {/* ── Production Footer ── */}
+      <footer className="border-t border-slate-200/80 bg-white py-14 px-6 text-left relative z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10 text-xs font-medium text-slate-500">
+          {/* Brand Column */}
+          <div className="md:col-span-2 space-y-4">
+            <Link to="/" className="flex items-center gap-3 no-underline group">
+              <img
+                src="/logo.png"
+                alt="Contexta-AI Logo"
+                className="w-9 h-9 rounded-xl object-contain shadow-xs group-hover:scale-105 transition-transform"
+              />
+              <span className="text-base font-bold text-slate-900 font-display">Contexta-AI</span>
+              <span className="px-2 py-0.5 rounded-full bg-forest-50 text-forest-700 text-[10px] font-bold border border-forest-100">
+                v4.2 PRO
+              </span>
+            </Link>
+
             <p className="max-w-sm text-slate-500 leading-relaxed font-medium">
-              Enterprise PDF vector retrieval & RAG pipeline platform powered by Gemini 1.5 Flash and FAISS similarity indexing.
+              Enterprise PDF vector retrieval &amp; RAG pipeline platform powered by Gemini 1.5 Flash and FAISS similarity indexing.
             </p>
-            <p className="text-[10px] text-slate-400">
+
+            <div className="flex items-center gap-3 pt-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>All Systems Operational</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 font-medium pt-2">
               © {new Date().getFullYear()} Contexta-AI Inc. All rights reserved.
             </p>
           </div>
 
-          <div className="space-y-2">
-            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider">Product</p>
-            <p><a href="#features" className="hover:text-forest-600 transition-colors no-underline">Features</a></p>
-            <p><a href="#rag-engine" className="hover:text-forest-600 transition-colors no-underline">RAG Engine</a></p>
-            <p><a href="#showcase" className="hover:text-forest-600 transition-colors no-underline">Showcase</a></p>
-            <p><a href="#pricing" className="hover:text-forest-600 transition-colors no-underline">Pricing</a></p>
+          {/* Product Links */}
+          <div className="space-y-3">
+            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider font-display">Product</p>
+            <ul className="space-y-2.5 p-0 m-0 list-none">
+              <li><a href="#features" className="hover:text-forest-600 transition-colors no-underline">Features</a></li>
+              <li><a href="#rag-engine" className="hover:text-forest-600 transition-colors no-underline">RAG Engine</a></li>
+              <li><a href="#showcase" className="hover:text-forest-600 transition-colors no-underline">Showcase</a></li>
+              <li><a href="#pricing" className="hover:text-forest-600 transition-colors no-underline">Pricing</a></li>
+              <li><a href="#faq" className="hover:text-forest-600 transition-colors no-underline">FAQ</a></li>
+            </ul>
           </div>
 
-          <div className="space-y-2">
-            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider">Developers</p>
-            <p><Link to="/api-keys" className="hover:text-forest-600 transition-colors no-underline">API Docs</Link></p>
-            <p><Link to="/widget-embed" className="hover:text-forest-600 transition-colors no-underline">Widget Embed</Link></p>
-            <p><Link to="/rag-pipeline" className="hover:text-forest-600 transition-colors no-underline">Pipeline Config</Link></p>
+          {/* Developers Links */}
+          <div className="space-y-3">
+            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider font-display">Developers</p>
+            <ul className="space-y-2.5 p-0 m-0 list-none">
+              <li><Link to="/dashboard" className="hover:text-forest-600 transition-colors no-underline">Dashboard</Link></li>
+              <li><Link to="/widget-embed" className="hover:text-forest-600 transition-colors no-underline">Widget Embed</Link></li>
+              <li><Link to="/rag-pipeline" className="hover:text-forest-600 transition-colors no-underline">Pipeline Config</Link></li>
+              <li><Link to="/logs" className="hover:text-forest-600 transition-colors no-underline">System Logs</Link></li>
+            </ul>
           </div>
 
-          <div className="space-y-2">
-            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider">Legal & Security</p>
-            <p><a href="#faq" className="hover:text-forest-600 transition-colors no-underline">Privacy Policy</a></p>
-            <p><a href="#faq" className="hover:text-forest-600 transition-colors no-underline">Terms of Service</a></p>
-            <p><a href="#faq" className="hover:text-forest-600 transition-colors no-underline">Security Statement</a></p>
+          {/* Legal & Security Links */}
+          <div className="space-y-3">
+            <p className="font-bold text-slate-900 uppercase text-[10px] tracking-wider font-display">Legal &amp; Security</p>
+            <ul className="space-y-2.5 p-0 m-0 list-none">
+              <li><Link to="/privacy" className="hover:text-forest-600 transition-colors no-underline font-semibold text-slate-700">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-forest-600 transition-colors no-underline font-semibold text-slate-700">Terms of Service</Link></li>
+              <li><Link to="/security" className="hover:text-forest-600 transition-colors no-underline font-semibold text-slate-700">Security Statement</Link></li>
+            </ul>
           </div>
         </div>
       </footer>
