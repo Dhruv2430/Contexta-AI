@@ -122,17 +122,36 @@ export const searchSimilarChunks = async (query, userId, topK = 4) => {
   const existingIndex = await getIndexStats(indexPath);
 
   if (!existingIndex.usable) {
-    // If no index exists, they haven't uploaded any processed documents yet
     return [];
   }
 
   const vectorStore = await FaissStore.load(indexPath, embeddings);
-  
-  // Perform similarity search
-  // similaritySearch returns an array of Documents sorted by relevance
   const results = await vectorStore.similaritySearch(query, topK);
-  
   return results;
+};
+
+/**
+ * Performs a semantic similarity search with L2 distance scores attached.
+ * LangChain FAISS similaritySearchWithScore returns [doc, score] tuples where
+ * lower score = closer match (L2 distance).
+ */
+export const searchSimilarChunksWithScore = async (query, userId, topK = 4) => {
+  const embeddings = getEmbeddingsModel();
+  const indexPath = getUserIndexPath(userId);
+
+  const existingIndex = await getIndexStats(indexPath);
+
+  if (!existingIndex.usable) {
+    return [];
+  }
+
+  const vectorStore = await FaissStore.load(indexPath, embeddings);
+  const resultsWithScore = await vectorStore.similaritySearchWithScore(query, topK);
+
+  return resultsWithScore.map(([doc, score]) => ({
+    ...doc,
+    score,
+  }));
 };
 
 export const getAllIndexedChunks = async (userId) => {

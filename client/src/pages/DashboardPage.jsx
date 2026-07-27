@@ -28,7 +28,9 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const { isOpen, toggle, close } = useMobileSidebar();
   const [stats, setStats] = useState(null);
+  const [gaps, setGaps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [gapsLoading, setGapsLoading] = useState(true);
   const [error, setError] = useState("");
   const [toastMsg, setToastMsg] = useState("");
 
@@ -45,8 +47,21 @@ const DashboardPage = () => {
     }
   };
 
+  const fetchGaps = async () => {
+    setGapsLoading(true);
+    try {
+      const { data } = await api.get("/gaps");
+      setGaps(data.data || []);
+    } catch {
+      console.warn("Failed to load knowledge gaps.");
+    } finally {
+      setGapsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchGaps();
   }, []);
 
   const metrics = useMemo(() => {
@@ -341,6 +356,66 @@ const DashboardPage = () => {
                   </div>
                 </motion.div>
               </div>
+
+              {/* Knowledge Gaps Panel */}
+              <motion.div
+                variants={itemVariants}
+                className="card p-6 bg-white border border-slate-200/70 shadow-xs text-left mt-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">
+                      Knowledge Gaps Detected
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      Unanswered questions flagged when vector match distance exceeds confidence threshold
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchGaps}
+                    className="p-2 rounded-lg text-slate-400 hover:text-forest-700 hover:bg-slate-100 transition-colors"
+                    title="Refresh gaps"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${gapsLoading ? "animate-spin text-forest-600" : ""}`} />
+                  </button>
+                </div>
+
+                {gapsLoading ? (
+                  <div className="py-6 text-center text-xs text-slate-400">Loading knowledge gaps...</div>
+                ) : gaps.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {gaps.map((gap) => (
+                      <div key={gap._id || gap.id} className="py-3 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/80 flex items-center justify-center shrink-0 text-amber-600">
+                            <AlertCircle className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-800 truncate">{gap.question}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">
+                              Logged {new Date(gap.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2">
+                          {gap.confidenceScore !== null && gap.confidenceScore !== undefined && (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono font-semibold">
+                              L2 Score: {Number(gap.confidenceScore).toFixed(3)}
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
+                            Flagged Gap
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 font-medium">
+                    No knowledge gaps detected yet. All user questions passed vector confidence thresholds.
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </main>

@@ -1,8 +1,8 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { getAllIndexedChunks, searchSimilarChunks } from "./vectorService.js";
-import { hasUsableVectorStore } from "./vectorService.js";
+import { getAllIndexedChunks, searchSimilarChunks, searchSimilarChunksWithScore, hasUsableVectorStore } from "./vectorService.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import Document from "../models/Document.js";
+import KnowledgeGap from "../models/KnowledgeGap.js";
 
 // ---------------------------------------------------------------------------
 // Chat Service (Retrieval Pipeline)
@@ -256,8 +256,22 @@ const findEmailMatches = async (userId) => {
       })
     )
   );
-
   return { emails, matchedChunks };
+};
+
+const DISTANCE_THRESHOLD = 0.9;
+
+const logKnowledgeGap = async (userId, question, score) => {
+  try {
+    await KnowledgeGap.create({
+      userId,
+      question: question.trim(),
+      confidenceScore: typeof score === "number" ? score : null,
+    });
+    console.log(`[RAG] Logged knowledge gap for user ${userId}: "${question}" (score: ${score})`);
+  } catch (err) {
+    console.error("[RAG] Failed to log knowledge gap:", err.message);
+  }
 };
 
 export const generateAnswer = async (question, userId) => {
@@ -446,21 +460,34 @@ Instructions for a clean, humanized response:
     }
   }
 
-  // 2. Perform Similarity Search (top 6 for better recall)
-  console.log(`[RAG] Step 2: Performing vector similarity search...`);
+  // 2. Perform Similarity Search with Scores (L2 distance)
+  console.log(`[RAG] Step 2: Performing vector similarity search with score...`);
   let relevantChunks = [];
   try {
-    relevantChunks = await searchSimilarChunks(question, userId, 6);
-    console.log(`[RAG] Found ${relevantChunks.length} relevant chunks.`);
+    relevantChunks = await searchSimilarChunksWithScore(question, userId, 6);
+    console.log(`[RAG] Found ${relevantChunks.length} relevant chunks. Top score: ${relevantChunks[0]?.score}`);
   } catch (error) {
     console.error("[RAG] Vector search failed:", error.message);
     return localFallback(error.message);
   }
 
-  // If no chunks were found and no emails were found
-  if ((!relevantChunks || relevantChunks.length === 0) && !emailContext) {
-    console.log(`[RAG] No chunks or emails found. Aborting generation.`);
-    return localFallback("vector search returned no chunks");
+  // Confidence Gate Check:
+  // For L2 distance, lower score = better match. If top score exceeds DISTANCE_THRESHOLD (0.9), it's low confidence.
+  const topScore = relevantChunks[0]?.score;
+  const isLowConfidence =
+    !relevantChunks.length || (topScore !== undefined && topScore > DISTANCE_THRESHOLD);
+
+  if (isLowConfidence && !emailContext) {
+    console.log(
+      `[RAG] Low confidence query (top score: ${topScore}, threshold: ${DISTANCE_THRESHOLD}). Logging knowledge gap.`
+    );
+    await logKnowledgeGap(userId, question, topScore);
+    return {
+      answer:
+        "I don't have confident information on this topic in the uploaded documents, so I've flagged it for our team to update.",
+      sources: [],
+      lowConfidence: true,
+    };
   }
 
   // 3. Format Context

@@ -10,6 +10,7 @@ import documentRoutes from "./routes/documentRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import systemRoutes from "./routes/systemRoutes.js";
+import gapRoutes from "./routes/gapRoutes.js";
 
 // ESM doesn't have __dirname, so we derive it
 const __filename = fileURLToPath(import.meta.url);
@@ -98,6 +99,7 @@ app.use("/api/documents", documentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/system", systemRoutes);
+app.use("/api/gaps", gapRoutes);
 
 // ---------------------------------------------------------------------------
 // Multer Error Handler
