@@ -7,11 +7,8 @@ import DocumentsPage from "./pages/DocumentsPage";
 import ChatPage from "./pages/ChatPage";
 import WidgetPage from "./pages/WidgetPage";
 import {
-  AIModelsPage,
   AnalyticsPage,
-  ApiKeysPage,
   BillingPage,
-  DeploymentsPage,
   LogsPage,
   RagPipelinePage,
   SettingsPage,
@@ -21,12 +18,9 @@ import {
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const protectedModuleRoutes = [
-  { path: "/ai-models", Component: AIModelsPage },
   { path: "/rag-pipeline", Component: RagPipelinePage },
   { path: "/analytics", Component: AnalyticsPage },
   { path: "/widget-embed", Component: WidgetEmbedPage },
-  { path: "/deployments", Component: DeploymentsPage },
-  { path: "/api-keys", Component: ApiKeysPage },
   { path: "/logs", Component: LogsPage },
   { path: "/billing", Component: BillingPage },
   { path: "/team", Component: TeamPage },

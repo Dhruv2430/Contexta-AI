@@ -25,6 +25,9 @@ import Topbar from "../components/Topbar";
 import useAuth from "../hooks/useAuth";
 import api from "../services/api";
 
+import useMobileSidebar from "../hooks/useMobileSidebar";
+import { motion } from "framer-motion";
+
 const formatDate = (date) =>
   new Date(date).toLocaleString("en-US", {
     month: "short",
@@ -33,21 +36,29 @@ const formatDate = (date) =>
     minute: "2-digit",
   });
 
-const PageShell = ({ active, title, subtitle, children }) => (
-  <div className="min-h-screen bg-slate-50 text-slate-700 flex">
-    <Sidebar active={active} />
-    <div className="flex-1 flex flex-col min-h-screen min-w-0">
-      <Topbar />
-      <main className="flex-1 p-6 md:p-8 space-y-6 md:space-y-8 overflow-y-auto">
-        <div className="animate-fade-in text-left">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 font-display">{title}</h1>
-          <p className="text-sm text-slate-500 mt-1.5 font-medium">{subtitle}</p>
-        </div>
-        {children}
-      </main>
+const PageShell = ({ active, title, subtitle, children }) => {
+  const { isOpen, toggle, close } = useMobileSidebar();
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-700 flex">
+      <Sidebar active={active} mobileOpen={isOpen} onMobileClose={close} />
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+        <Topbar onMenuToggle={toggle} />
+        <main className="flex-1 p-6 md:p-8 space-y-6 md:space-y-8 overflow-y-auto max-w-7xl mx-auto w-full">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-left"
+          >
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 font-display">{title}</h1>
+            <p className="text-xs md:text-sm text-slate-500 mt-1.5 font-medium">{subtitle}</p>
+          </motion.div>
+          {children}
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const state = status || "unknown";
