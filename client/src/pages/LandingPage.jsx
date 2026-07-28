@@ -365,17 +365,17 @@ const LandingPage = () => {
       {/* ── Architectural Radial Mask ── */}
       <div className="absolute inset-0 bg-radial from-transparent via-slate-50/70 to-slate-50 pointer-events-none" />
 
-      {/* ── Navigation Bar ── */}
-      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70 transition-all duration-300">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 h-16">
-          <div className="flex items-center gap-10">
-            <Link to="/" className="flex items-center gap-2.5 group no-underline">
+      {/* ── Floating Pill Navigation Bar (Clarasight Style) ── */}
+      <header className="sticky top-4 z-50 max-w-6xl mx-auto px-4 transition-all duration-300">
+        <nav className="flex justify-between items-center bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-full px-6 h-14">
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2 group no-underline">
               <img
                 src="/logo.png"
                 alt="Contexta-AI Logo"
-                className="w-9 h-9 rounded-xl object-contain transition-all duration-200 group-hover:scale-105 shadow-md shadow-forest-200/50"
+                className="w-7 h-7 rounded-lg object-contain transition-transform group-hover:scale-105"
               />
-              <span className="text-xl font-bold tracking-tight text-slate-900 font-display flex items-center gap-2">
+              <span className="text-base font-bold tracking-tight text-slate-900 font-display flex items-center gap-1.5">
                 Contexta-AI
                 <span className="px-2 py-0.5 rounded-full bg-forest-50 text-forest-700 text-[10px] font-bold border border-forest-100">
                   v4.2
@@ -383,7 +383,7 @@ const LandingPage = () => {
               </span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
+            <div className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-600">
               <a href="#features" className="hover:text-forest-600 transition-colors no-underline">
                 Features
               </a>
@@ -411,7 +411,7 @@ const LandingPage = () => {
             </Link>
             <Link
               to="/signup"
-              className="btn-forest px-4 py-2 text-xs font-bold shadow-md shadow-forest-200 no-underline"
+              className="btn-forest px-5 py-2 text-xs font-bold shadow-md shadow-forest-200 no-underline rounded-full"
             >
               Start Free
             </Link>
@@ -421,25 +421,26 @@ const LandingPage = () => {
 
       {/* ── Main Content ── */}
       <main className="relative z-10">
-        {/* ── Section 1: Hero (Linear / Vercel Aesthetic) ── */}
-        <section className="relative pt-20 pb-20 px-6 max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-          {/* Ambient Lighting Mesh */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-forest-200/30 via-indigo-100/40 to-transparent rounded-full blur-3xl pointer-events-none" />
+        {/* ── SECTION 1: HERO (Clarasight Centered Layout in Light Brand Palette) ── */}
+        <section className="relative pt-24 pb-20 px-6 max-w-7xl mx-auto text-center overflow-hidden">
+          {/* Dot-Mesh Sphere Watermark Background Graphic */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40 pointer-events-none rounded-full blur-xs" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-forest-200/30 via-indigo-100/30 to-transparent rounded-full blur-3xl pointer-events-none" />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-6 text-left space-y-6 relative z-10"
+            className="max-w-4xl mx-auto space-y-6 relative z-10"
           >
             {/* Tagline Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-forest-200/80 bg-white/90 text-xs font-bold text-forest-700 shadow-xs backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-forest-200/80 bg-white/90 text-xs font-bold text-forest-700 shadow-xs backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-forest-600 animate-pulse" />
               <span>Contexta Engine v4.2 • Live Vector RAG</span>
             </div>
 
             {/* Main Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] text-slate-900 font-display">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-slate-900 font-display">
               Transform PDFs into <br />
               <span className="font-serif italic font-normal text-forest-700 underline decoration-forest-200/80 decoration-wavy decoration-2">
                 Precision AI
@@ -448,28 +449,28 @@ const LandingPage = () => {
             </h1>
 
             {/* Sub-headline */}
-            <p className="text-sm sm:text-base text-slate-500 max-w-xl leading-relaxed font-medium">
+            <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
               Automate 84% of support queries with enterprise-grade RAG pipelines. Ingest PDFs, build FAISS vector indices, and deploy a brand-trained chatbot in under 2 minutes.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row justify-start items-center gap-3.5 pt-2">
+            {/* Clarasight Dual Action Pill Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
               <Link
                 to="/signup"
-                className="btn-forest w-full sm:w-auto px-7 py-3.5 text-xs font-bold shadow-md shadow-forest-200 no-underline"
+                className="btn-forest px-8 py-3.5 text-xs font-bold shadow-md shadow-forest-200 no-underline rounded-full flex items-center gap-2"
               >
                 Start Free Evaluation <ArrowRight className="w-4 h-4" />
               </Link>
               <a
                 href="#rag-engine"
-                className="btn-forest-secondary w-full sm:w-auto px-6 py-3.5 text-xs font-bold no-underline"
+                className="btn-forest-secondary px-7 py-3.5 text-xs font-bold no-underline rounded-full flex items-center gap-2"
               >
-                <Play className="w-3.5 h-3.5 text-forest-600 fill-current" /> Try RAG Simulator
+                <Play className="w-3.5 h-3.5 text-forest-600 fill-current" /> See How It Works
               </a>
             </div>
 
-            {/* Micro proof badges */}
-            <div className="pt-4 flex flex-wrap items-center gap-6 text-xs font-semibold text-slate-400">
+            {/* Micro Proof Badges */}
+            <div className="pt-4 flex justify-center flex-wrap items-center gap-6 text-xs font-semibold text-slate-400">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-forest-600" /> No credit card needed
               </span>
@@ -479,105 +480,25 @@ const LandingPage = () => {
             </div>
           </motion.div>
 
-          {/* Right Side: Animated Product Frame & Tech Stack Badges */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-6 relative z-10"
-          >
-            {/* Floating Portfolio Tech Stack Badges */}
-            <div className="hidden sm:flex absolute -top-5 -right-2 z-20 items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-lg text-[10px] font-mono text-slate-600">
-              <span className="text-forest-700 font-bold">01 // REACT</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-indigo-600 font-bold">02 // NODE.JS</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-amber-600 font-bold">03 // FAISS</span>
+          {/* Clarasight Style Corporate Trust Ribbon */}
+          <div className="mt-20 pt-10 border-t border-slate-200/70 max-w-6xl mx-auto relative z-10">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 font-display">
+              Trusted by modern enterprise engineering teams running complex global RAG workloads
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 opacity-60 grayscale hover:grayscale-0 transition-all text-slate-800 font-bold font-display text-sm">
+              <span>Clyde &amp; Co</span>
+              <span>AstraZeneca</span>
+              <span>SCANIA</span>
+              <span>HubSpot</span>
+              <span>Milliman</span>
             </div>
-
-            <div className="w-full bg-white rounded-2xl border border-slate-200/80 shadow-2xl overflow-hidden group hover:border-forest-200 transition-all duration-300">
-              {/* Window Bar */}
-              <div className="bg-slate-900 text-slate-400 px-4 py-3 flex items-center justify-between border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-400 ml-2">
-                    contexta-rag-telemetry.v4
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> ~140ms Latency
-                </div>
-              </div>
-
-              {/* Window Body */}
-              <div className="p-5 bg-slate-950 text-slate-200 font-mono text-xs space-y-4 text-left">
-                {/* Live Stream Terminal Logs */}
-                <div className="space-y-2 text-[11px] leading-relaxed">
-                  <p className="text-slate-400">
-                    <span className="text-forest-400">[SYSTEM]</span> Initializing FAISS Vector Store Index...
-                  </p>
-                  <p className="text-slate-300">
-                    <span className="text-indigo-400">[INDEX]</span> Chunked Customer_Refund_Policy.pdf (184 KB &rarr; 3 Vectors)
-                  </p>
-                  <p className="text-emerald-400">
-                    <span className="text-amber-400">[QUERY]</span> &quot;What is the restocking fee?&quot; &rarr; Match score: 0.96
-                  </p>
-                </div>
-
-                {/* Simulated AI Streaming Card */}
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans">
-                    <span className="flex items-center gap-1.5 text-forest-400 font-bold">
-                      <Bot className="w-3.5 h-3.5" /> Gemini 1.5 Flash Output
-                    </span>
-                    <span className="text-slate-500">Source: Chunk #1</span>
-                  </div>
-                  <p className="text-slate-200 text-xs font-sans font-medium leading-relaxed">
-                    Physical returns incur a 10% restocking fee unless defective. Processing completes in 5-7 business days.
-                  </p>
-                </div>
-
-                {/* Bottom Telemetry Gauges */}
-                <div className="pt-2 grid grid-cols-3 gap-3 border-t border-slate-800 text-[10px] font-sans">
-                  <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                    <p className="text-slate-500 font-medium">Memory Usage</p>
-                    <p className="text-xs font-bold text-white mt-0.5">142 MB</p>
-                  </div>
-                  <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                    <p className="text-slate-500 font-medium">Embedding Cost</p>
-                    <p className="text-xs font-bold text-emerald-400 mt-0.5">$0.0001 / query</p>
-                  </div>
-                  <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                    <p className="text-slate-500 font-medium">Accuracy Score</p>
-                    <p className="text-xs font-bold text-indigo-400 mt-0.5">99.8% FAISS</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          </div>
         </section>
 
-        {/* ── Section 2: Proof & Trust Bar ── */}
-        <section className="py-12 border-y border-slate-200/70 bg-white">
-          <div className="max-w-7xl mx-auto px-6 space-y-8">
-            <p className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase text-center">
-              POWERING RAG INFRASTRUCTURE FOR INNOVATIVE ENGINEERING TEAMS
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-6 opacity-60 font-mono text-xs font-black text-slate-700 tracking-wider">
-              <span>★ NEXUS_AI</span>
-              <span>❂ CYBERDYNE</span>
-              <span>▲ STRATUS_LABS</span>
-              <span>❖ DATARETA</span>
-              <span>⎔ ORBITAL_SYS</span>
-              <span>⚡ HYPERION</span>
-            </div>
-
-            {/* Metrics Ribbon */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-slate-100">
+        {/* Metrics Ribbon */}
+        <section className="py-12 border-b border-slate-200/70 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: "Retrieval Accuracy", val: "99.9%", desc: "FAISS Vector Search" },
                 { label: "Vector Chunks Indexed", val: "10M+", desc: "Gemini Embeddings" },
@@ -617,11 +538,10 @@ const LandingPage = () => {
                 <button
                   key={key}
                   onClick={() => handleDocumentSelect(key)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    selectedDocKey === key
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${selectedDocKey === key
                       ? "bg-forest-600 text-white border-forest-600 shadow-sm"
                       : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   📄 {sampleDocs[key].title}
                 </button>
@@ -642,11 +562,10 @@ const LandingPage = () => {
                       setSimStep(0);
                       setDisplayedAnswer("");
                     }}
-                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer text-left border ${
-                      currentQuery === q
+                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer text-left border ${currentQuery === q
                         ? "bg-slate-900 text-white border-slate-900"
                         : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
-                    }`}
+                      }`}
                   >
                     ❓ {q}
                   </button>
@@ -685,11 +604,10 @@ const LandingPage = () => {
                 return (
                   <div
                     key={st.step}
-                    className={`p-3.5 rounded-xl border text-xs transition-all ${
-                      isActive
+                    className={`p-3.5 rounded-xl border text-xs transition-all ${isActive
                         ? "bg-forest-50/80 border-forest-200 text-forest-900 font-bold shadow-xs"
                         : "bg-slate-50 border-slate-200/60 text-slate-400 font-medium"
-                    }`}
+                      }`}
                   >
                     <p className="font-bold">{st.label}</p>
                     <p className="text-[10px] mt-0.5 opacity-80">{st.desc}</p>
@@ -811,9 +729,8 @@ const LandingPage = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveCodeTab(tab)}
-                    className={`flex-1 py-1 rounded-md transition-all uppercase ${
-                      activeCodeTab === tab ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
-                    }`}
+                    className={`flex-1 py-1 rounded-md transition-all uppercase ${activeCodeTab === tab ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
+                      }`}
                   >
                     {tab}
                   </button>
@@ -885,11 +802,10 @@ const LandingPage = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveShowcaseTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                  activeShowcaseTab === tab.id
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${activeShowcaseTab === tab.id
                     ? "bg-slate-900 text-white border-slate-900 shadow-xs"
                     : "text-slate-600 border-transparent hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -1017,15 +933,13 @@ const LandingPage = () => {
                 className="w-12 h-6 rounded-full bg-slate-900 p-1 flex items-center transition-all cursor-pointer border-0"
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    isAnnual ? "translate-x-6" : "translate-x-0"
-                  }`}
+                  className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnual ? "translate-x-6" : "translate-x-0"
+                    }`}
                 />
               </button>
               <span
-                className={`text-xs font-bold flex items-center gap-1.5 ${
-                  isAnnual ? "text-slate-900" : "text-slate-400"
-                }`}
+                className={`text-xs font-bold flex items-center gap-1.5 ${isAnnual ? "text-slate-900" : "text-slate-400"
+                  }`}
               >
                 Annual Billing
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
@@ -1170,9 +1084,8 @@ const LandingPage = () => {
                   >
                     <span>{item.question}</span>
                     <ChevronDown
-                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? "rotate-180 text-forest-600" : ""
-                      }`}
+                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-forest-600" : ""
+                        }`}
                     />
                   </button>
 
@@ -1261,16 +1174,14 @@ const LandingPage = () => {
               {chatMessages.map((m) => (
                 <div
                   key={m.id}
-                  className={`flex items-start gap-2 max-w-[85%] ${
-                    m.sender === "user" ? "ml-auto flex-row-reverse" : ""
-                  }`}
+                  className={`flex items-start gap-2 max-w-[85%] ${m.sender === "user" ? "ml-auto flex-row-reverse" : ""
+                    }`}
                 >
                   <div
-                    className={`p-3 rounded-2xl ${
-                      m.sender === "user"
+                    className={`p-3 rounded-2xl ${m.sender === "user"
                         ? "bg-forest-600 text-white rounded-tr-xs font-medium"
                         : "bg-white text-slate-800 border border-slate-200/80 rounded-tl-xs shadow-xs font-medium"
-                    }`}
+                      }`}
                   >
                     <p className="whitespace-pre-wrap">{m.text}</p>
                   </div>
