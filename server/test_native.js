@@ -5,7 +5,7 @@ async function test() {
   console.log("Starting native SDK test with new API key...");
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     console.log("Generating content...");
     const result = await model.generateContent("Say hello");

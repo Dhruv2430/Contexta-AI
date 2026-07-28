@@ -201,7 +201,7 @@ export const getApiKeyStatus = async (req, res) => {
     gemini: {
       configured: Boolean(geminiKey),
       masked: geminiKey ? `****${geminiKey.slice(-4)}` : "",
-      chatModel: process.env.GEMINI_CHAT_MODEL || "gemini-2.5-flash",
+      chatModel: process.env.GEMINI_CHAT_MODEL || "gemini-2.0-flash",
       embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001",
     },
     database: {
