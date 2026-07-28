@@ -14,9 +14,28 @@ import mongoose from "mongoose";
 /**
  * Helper to process chat and save history
  */
-const processChat = async (question, companyId) => {
-  const { answer, sources } = await generateAnswer(question, companyId);
-  
+const processChat = async (question, companyId, clientHistory = []) => {
+  let history = clientHistory;
+
+  // Load recent chat history from DB if not passed explicitly from client
+  if (!history || history.length === 0) {
+    try {
+      const recentDbChats = await ChatHistory.find({ companyId })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .lean();
+
+      history = recentDbChats.reverse().flatMap((c) => [
+        { sender: "user", text: c.question },
+        { sender: "bot", text: c.answer },
+      ]);
+    } catch (err) {
+      console.warn("[Chat Controller] Failed to load chat history for memory:", err.message);
+    }
+  }
+
+  const { answer, sources, lowConfidence } = await generateAnswer(question, companyId, history);
+
   // Save to History
   await ChatHistory.create({
     companyId,
@@ -25,7 +44,7 @@ const processChat = async (question, companyId) => {
     sources,
   });
 
-  return { answer, sources };
+  return { answer, sources, lowConfidence };
 };
 
 const getChatErrorMessage = (error) => {
@@ -61,15 +80,15 @@ const getChatErrorMessage = (error) => {
  */
 export const askQuestion = async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, history } = req.body;
 
     if (!question || question.trim() === "") {
       return res.status(400).json({ success: false, message: "Question is required." });
     }
 
-    const { answer, sources } = await processChat(question, req.user._id);
+    const { answer, sources, lowConfidence } = await processChat(question, req.user._id, history);
 
-    return res.status(200).json({ success: true, answer, sources });
+    return res.status(200).json({ success: true, answer, sources, lowConfidence });
   } catch (error) {
     console.error("Chat controller error:", error);
     return res.status(500).json({ success: false, message: getChatErrorMessage(error) });
@@ -141,7 +160,7 @@ export const clearChatHistory = async (req, res) => {
 export const widgetChat = async (req, res) => {
   try {
     const { companyId } = req.params;
-    const { question } = req.body;
+    const { question, history } = req.body;
 
     if (!question || question.trim() === "") {
       return res.status(400).json({ success: false, message: "Question is required." });
@@ -160,10 +179,10 @@ export const widgetChat = async (req, res) => {
       return res.status(404).json({ success: false, message: "Invalid company widget ID." });
     }
 
-    // Process using companyId
-    const { answer, sources } = await processChat(question, companyId);
+    // Process using companyId and history
+    const { answer, sources, lowConfidence } = await processChat(question, companyId, history);
 
-    return res.status(200).json({ success: true, answer, sources });
+    return res.status(200).json({ success: true, answer, sources, lowConfidence });
   } catch (error) {
     console.error("Widget chat error:", error);
     return res.status(500).json({ success: false, message: getChatErrorMessage(error) });

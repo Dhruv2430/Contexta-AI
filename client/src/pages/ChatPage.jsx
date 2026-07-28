@@ -36,8 +36,8 @@ const ChatPage = () => {
     loadHistory();
   }, []);
 
-  const handleSendMessage = useCallback(async (question) => {
-    const { data } = await api.post("/chat", { question });
+  const handleSendMessage = useCallback(async (question, history) => {
+    const { data } = await api.post("/chat", { question, history });
     return { answer: data.answer, sources: data.sources || [] };
   }, []);
 

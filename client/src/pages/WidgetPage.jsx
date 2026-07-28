@@ -46,7 +46,7 @@ const WidgetContent = () => {
   const { companyId } = useParams();
   const isDemo = !companyId || companyId.includes("YOUR_");
 
-  const handleSendMessage = async (text) => {
+  const handleSendMessage = async (text, history) => {
     // Demo Mode fallback for placeholder company IDs
     if (isDemo) {
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -70,7 +70,7 @@ const WidgetContent = () => {
 
     // Real API Call for valid Company IDs
     try {
-      const { data } = await api.post(`/chat/widget/${companyId}`, { question: text });
+      const { data } = await api.post(`/chat/widget/${companyId}`, { question: text, history });
       return data;
     } catch (error) {
       console.error("Widget chat error:", error);

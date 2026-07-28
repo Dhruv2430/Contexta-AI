@@ -45,7 +45,11 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
       setIsLoading(true);
 
       try {
-        const response = await onSendMessage(userMessage.text);
+        const historyPayload = messages.slice(-6).map((m) => ({
+          sender: m.role === "user" ? "user" : "bot",
+          text: m.text,
+        }));
+        const response = await onSendMessage(userMessage.text, historyPayload);
         setMessages((prev) => [
           ...prev,
           {
