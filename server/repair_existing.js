@@ -42,24 +42,41 @@ async function repair() {
       let fileBuffer;
       let targetPath = doc.filepath;
 
-      try {
-        fileBuffer = await fs.readFile(targetPath);
-        console.log(`- Read file directly from path: ${targetPath}`);
-      } catch (err) {
-        // Fallback to local uploads directory
-        const filename = path.basename(doc.filepath);
-        const localPath = path.join(config.uploadsDir, filename);
+      if (doc.cloudinaryUrl) {
         try {
-          fileBuffer = await fs.readFile(localPath);
-          targetPath = localPath;
-          console.log(`- Read file from fallback uploads path: ${localPath}`);
-        } catch (localErr) {
-          console.warn(`- Physical file not found for "${doc.originalName}" (checked original and uploads fallback).`);
-          doc.processingStatus = "failed";
-          doc.processingError = "Physical PDF file not found on the local server. Please delete and re-upload this document.";
-          await doc.save();
-          continue;
+          const response = await fetch(doc.cloudinaryUrl);
+          if (response.ok) {
+            fileBuffer = Buffer.from(await response.arrayBuffer());
+            console.log(`- Read file directly from Cloudinary URL: ${doc.cloudinaryUrl}`);
+          }
+        } catch (cloudErr) {
+          console.warn(`- Failed to fetch from Cloudinary: ${cloudErr.message}`);
         }
+      }
+
+      if (!fileBuffer && targetPath) {
+        try {
+          fileBuffer = await fs.readFile(targetPath);
+          console.log(`- Read file directly from path: ${targetPath}`);
+        } catch (err) {
+          // Fallback to local uploads directory
+          const filename = path.basename(doc.filepath);
+          const localPath = path.join(config.uploadsDir, filename);
+          try {
+            fileBuffer = await fs.readFile(localPath);
+            targetPath = localPath;
+            console.log(`- Read file from fallback uploads path: ${localPath}`);
+          } catch (localErr) {
+            console.warn(`- Physical file not found for "${doc.originalName}" (checked original and uploads fallback).`);
+          }
+        }
+      }
+
+      if (!fileBuffer) {
+        doc.processingStatus = "failed";
+        doc.processingError = "Physical PDF file not found on server or Cloudinary. Please delete and re-upload.";
+        await doc.save();
+        continue;
       }
 
       // Parse the PDF
@@ -95,7 +112,7 @@ async function repair() {
     // Now, rebuild the vector store for all affected users
     console.log("Rebuilding vector stores for affected users...");
     for (const userId of affectedUserIds) {
-      console.log(`Rebuilding FAISS index for user: ${userId}`);
+      console.log(`Rebuilding MongoDB Atlas vector store for user: ${userId}`);
       const result = await rebuildVectorStoreForUser(userId);
       console.log(`- Rebuild complete. Usable index: ${result.rebuilt}, total chunks: ${result.chunks}`);
     }

@@ -1,81 +1,97 @@
-import { FaissStore } from "@langchain/community/vectorstores/faiss";
+import { MongoDBAtlasVectorSearch } from "@langchain/community/vectorstores/mongodb_atlas";
+import mongoose from "mongoose";
 import { getEmbeddingsModel } from "./embeddingService.js";
-import path from "path";
-import fs from "fs";
-import fsPromises from "fs/promises";
-import { fileURLToPath } from "url";
-import config from "../config/env.js";
 
 // ---------------------------------------------------------------------------
-// Vector Service
+// Vector Service (MongoDB Atlas Vector Search)
 //
 // WHY this file exists:
-// Handles all interactions with the local FAISS vector database.
-// FAISS (Facebook AI Similarity Search) stores vectors and allows fast
-// nearest-neighbor searches (semantic search).
+// Handles all vector storage and semantic search operations using MongoDB
+// Atlas Vector Search.
 //
 // MULTI-TENANCY:
-// To ensure users only access their own documents, we either:
-// 1. Maintain a single index and filter results by metadata (FAISS node has limited metadata filtering compared to Pinecone).
-// 2. Maintain a separate FAISS index per user. (We will use this approach for complete isolation and safety).
+// Enforced via MongoDB Atlas preFilter metadata matching (e.g. userId).
 // ---------------------------------------------------------------------------
 
-const VECTOR_STORE_DIR = config.faissDir;
+const COLLECTION_NAME = "documentchunks";
+const INDEX_NAME = "vector_index";
 
 /**
- * Gets the path for a user's specific FAISS index.
+ * Gets the MongoDB Collection for storing vector documents.
  */
-const getUserIndexPath = (userId) => {
-  return path.join(VECTOR_STORE_DIR, `user_${userId}`);
+const getVectorCollection = () => {
+  if (!mongoose.connection || !mongoose.connection.db) {
+    throw new Error("MongoDB connection is not established.");
+  }
+  return mongoose.connection.db.collection(COLLECTION_NAME);
 };
 
-const removeDirectoryIfExists = (directory) => {
-  if (fs.existsSync(directory)) {
-    fs.rmSync(directory, { recursive: true, force: true });
-  }
-};
+/**
+ * Instantiates the MongoDBAtlasVectorSearch store wrapper.
+ */
+const getVectorStore = () => {
+  const collection = getVectorCollection();
+  const embeddings = getEmbeddingsModel();
 
-const getIndexStats = async (indexPath) => {
-  if (
-    !fs.existsSync(path.join(indexPath, "faiss.index")) ||
-    !fs.existsSync(path.join(indexPath, "docstore.json"))
-  ) {
-    return { exists: false, usable: false, dimension: 0, total: 0 };
-  }
-
-  try {
-    const { IndexFlatL2 } = await FaissStore.importFaiss();
-    const index = IndexFlatL2.read(path.join(indexPath, "faiss.index"));
-    const dimension = index.getDimension();
-    const total = index.ntotal();
-
-    return {
-      exists: true,
-      usable: dimension > 0 && total > 0,
-      dimension,
-      total,
-    };
-  } catch (error) {
-    console.warn("Unable to inspect FAISS index:", error.message);
-    return { exists: true, usable: false, dimension: 0, total: 0 };
-  }
+  return new MongoDBAtlasVectorSearch(embeddings, {
+    collection: collection,
+    indexName: INDEX_NAME,
+    textKey: "text",
+    embeddingKey: "embedding",
+  });
 };
 
 export const hasUsableVectorStore = async (userId) => {
-  const stats = await getIndexStats(getUserIndexPath(userId));
-  return stats.usable;
+  const collection = getVectorCollection();
+  const count = await collection.countDocuments({
+    $or: [{ userId: userId.toString() }, { "metadata.userId": userId.toString() }],
+  });
+  return count > 0;
 };
 
 export const getUserVectorStoreStats = async (userId) => {
-  return getIndexStats(getUserIndexPath(userId));
+  try {
+    const collection = getVectorCollection();
+    const total = await collection.countDocuments({
+      $or: [{ userId: userId.toString() }, { "metadata.userId": userId.toString() }],
+    });
+
+    return {
+      exists: total > 0,
+      usable: total > 0,
+      dimension: 3072,
+      total,
+    };
+  } catch (error) {
+    console.warn("Unable to inspect MongoDB Atlas vector store:", error.message);
+    return { exists: false, usable: false, dimension: 0, total: 0 };
+  }
 };
 
-export const clearUserVectorStore = (userId) => {
-  removeDirectoryIfExists(getUserIndexPath(userId));
+export const clearUserVectorStore = async (userId) => {
+  const collection = getVectorCollection();
+  const userIdStr = userId.toString();
+
+  let userObjectId = null;
+  try {
+    userObjectId = new mongoose.Types.ObjectId(userIdStr);
+  } catch {}
+
+  const userConditions = [{ userId: userIdStr }, { "metadata.userId": userIdStr }];
+  if (userObjectId) {
+    userConditions.push({ userId: userObjectId }, { "metadata.userId": userObjectId });
+  }
+
+  const query = { $or: userConditions };
+
+  console.log("[VectorService] clearUserVectorStore BEFORE deleteMany. Query:", JSON.stringify(query));
+  const result = await collection.deleteMany(query);
+  console.log(`[VectorService] clearUserVectorStore AFTER deleteMany. Result: deletedCount = ${result.deletedCount}`);
+  return result;
 };
 
 /**
- * Adds chunks (documents) to a user's FAISS index.
+ * Adds chunks (documents) to MongoDB Atlas vector store.
  * @param {Array} docs - Array of Langchain Document objects (chunks) with metadata.
  * @param {String} userId - The ID of the user.
  */
@@ -84,69 +100,49 @@ export const addDocumentsToVectorStore = async (docs, userId) => {
     return;
   }
 
-  const embeddings = getEmbeddingsModel();
-  const indexPath = getUserIndexPath(userId);
+  // Ensure metadata has userId for pre-filtering
+  docs.forEach((doc) => {
+    doc.metadata = {
+      ...doc.metadata,
+      userId: userId.toString(),
+    };
+  });
 
-  let vectorStore;
-  const existingIndex = await getIndexStats(indexPath);
-
-  if (existingIndex.exists && !existingIndex.usable) {
-    console.warn(`Removing unusable FAISS index for user ${userId}.`);
-    removeDirectoryIfExists(indexPath);
-  }
-
-  if (existingIndex.usable) {
-    // Load existing index
-    vectorStore = await FaissStore.load(indexPath, embeddings);
-    await vectorStore.addDocuments(docs);
-  } else {
-    // Create new index
-    vectorStore = await FaissStore.fromDocuments(docs, embeddings);
-  }
-
-  // Save the updated index back to disk
-  await vectorStore.save(indexPath);
+  const vectorStore = getVectorStore();
+  await vectorStore.addDocuments(docs);
 };
 
 /**
- * Performs a semantic similarity search on a user's FAISS index.
+ * Performs a semantic similarity search on MongoDB Atlas vector store.
  * @param {String} query - The user's question.
  * @param {String} userId - The ID of the user (for isolation).
  * @param {Number} topK - The number of top chunks to retrieve.
  * @returns {Array} - Array of top matching Langchain Document chunks.
  */
 export const searchSimilarChunks = async (query, userId, topK = 4) => {
-  const embeddings = getEmbeddingsModel();
-  const indexPath = getUserIndexPath(userId);
-
-  const existingIndex = await getIndexStats(indexPath);
-
-  if (!existingIndex.usable) {
-    return [];
-  }
-
-  const vectorStore = await FaissStore.load(indexPath, embeddings);
-  const results = await vectorStore.similaritySearch(query, topK);
+  const vectorStore = getVectorStore();
+  const results = await vectorStore.similaritySearch(query, topK, {
+    preFilter: {
+      userId: {
+        $eq: userId.toString(),
+      },
+    },
+  });
   return results;
 };
 
 /**
- * Performs a semantic similarity search with L2 distance scores attached.
- * LangChain FAISS similaritySearchWithScore returns [doc, score] tuples where
- * lower score = closer match (L2 distance).
+ * Performs a semantic similarity search with similarity scores attached.
  */
 export const searchSimilarChunksWithScore = async (query, userId, topK = 4) => {
-  const embeddings = getEmbeddingsModel();
-  const indexPath = getUserIndexPath(userId);
-
-  const existingIndex = await getIndexStats(indexPath);
-
-  if (!existingIndex.usable) {
-    return [];
-  }
-
-  const vectorStore = await FaissStore.load(indexPath, embeddings);
-  const resultsWithScore = await vectorStore.similaritySearchWithScore(query, topK);
+  const vectorStore = getVectorStore();
+  const resultsWithScore = await vectorStore.similaritySearchWithScore(query, topK, {
+    preFilter: {
+      userId: {
+        $eq: userId.toString(),
+      },
+    },
+  });
 
   return resultsWithScore.map(([doc, score]) => ({
     ...doc,
@@ -155,29 +151,59 @@ export const searchSimilarChunksWithScore = async (query, userId, topK = 4) => {
 };
 
 export const getAllIndexedChunks = async (userId) => {
-  const indexPath = getUserIndexPath(userId);
-  const docstorePath = path.join(indexPath, "docstore.json");
+  const collection = getVectorCollection();
+  const userIdStr = userId.toString();
+  const rawDocs = await collection
+    .find({ $or: [{ userId: userIdStr }, { "metadata.userId": userIdStr }] })
+    .toArray();
 
-  if (!fs.existsSync(docstorePath)) {
-    return [];
-  }
-
-  const rawDocstore = await fsPromises.readFile(docstorePath, "utf8");
-  const [docstoreEntries] = JSON.parse(rawDocstore);
-
-  return docstoreEntries
-    .map(([, doc]) => doc)
-    .filter((doc) => doc?.pageContent);
+  return rawDocs.map((doc) => ({
+    pageContent: doc.text || doc.pageContent,
+    metadata: doc.metadata || {
+      documentId: doc.documentId,
+      filename: doc.filename,
+      originalName: doc.originalName,
+      userId: doc.userId,
+    },
+  }));
 };
 
 /**
- * (Optional) Delete a document's chunks from the vector store.
- * Note: FAISS node wrapper doesn't easily support deleting by metadata. 
- * Often, local FAISS stores are rebuilt if individual document deletion is needed.
- * But we'll leave a stub here.
+ * Delete a document's chunks from MongoDB Atlas vector store.
  */
 export const deleteDocumentFromVectorStore = async (documentId, userId) => {
-    // In a production vector DB like Pinecone, you'd do vectorStore.delete({ filter: { documentId }})
-    // For local FAISS, to fully implement deletion, we'd have to filter the internal docstore and rebuild the index.
-    console.log(`Document deletion from vector store not fully supported in local FAISS. (Skipped for ${documentId})`);
+  const collection = getVectorCollection();
+  const docIdStr = documentId.toString();
+  const userIdStr = userId.toString();
+
+  let docObjectId = null;
+  let userObjectId = null;
+  try {
+    docObjectId = new mongoose.Types.ObjectId(docIdStr);
+  } catch {}
+  try {
+    userObjectId = new mongoose.Types.ObjectId(userIdStr);
+  } catch {}
+
+  const userConditions = [{ userId: userIdStr }, { "metadata.userId": userIdStr }];
+  if (userObjectId) {
+    userConditions.push({ userId: userObjectId }, { "metadata.userId": userObjectId });
+  }
+
+  const docConditions = [{ documentId: docIdStr }, { "metadata.documentId": docIdStr }];
+  if (docObjectId) {
+    docConditions.push({ documentId: docObjectId }, { "metadata.documentId": docObjectId });
+  }
+
+  const query = {
+    $and: [
+      { $or: userConditions },
+      { $or: docConditions },
+    ],
+  };
+
+  console.log("[VectorService] deleteDocumentFromVectorStore BEFORE deleteMany. Query:", JSON.stringify(query));
+  const result = await collection.deleteMany(query);
+  console.log(`[VectorService] deleteDocumentFromVectorStore AFTER deleteMany. Result: deletedCount = ${result.deletedCount}`);
+  return result;
 };

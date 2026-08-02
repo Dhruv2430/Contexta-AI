@@ -55,7 +55,7 @@ export const rebuildVectorStoreForUser = async (userId) => {
   const docs = await Document.find({ uploadedBy: userId, processingStatus: "processed" });
   const chunks = await createChunksFromDocuments(docs, userId);
 
-  clearUserVectorStore(userId.toString());
+  await clearUserVectorStore(userId.toString());
 
   if (chunks.length === 0) {
     return { rebuilt: false, chunks: 0 };
@@ -108,7 +108,7 @@ export const processDocumentForRAG = async (documentId, userId) => {
     const uniqueChunks = Array.from(new Set(validChunks.map(c => c.pageContent)))
       .map(content => validChunks.find(c => c.pageContent === content));
 
-    // 5. Generate embeddings and store in FAISS
+    // 5. Generate embeddings and store in MongoDB Atlas documentchunks collection
     await addDocumentsToVectorStore(uniqueChunks, userId.toString());
 
     console.log(`Successfully ingested document ${doc.filename} into vector store.`);

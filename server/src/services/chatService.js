@@ -300,7 +300,8 @@ const findEmailMatches = async (userId) => {
   return { emails, matchedChunks };
 };
 
-const DISTANCE_THRESHOLD = 0.9;
+// Cosine similarity threshold (scores below 0.65 indicate low confidence)
+const DISTANCE_THRESHOLD = 0.65;
 
 const logKnowledgeGap = async (userId, question, score) => {
   try {
@@ -526,15 +527,15 @@ Strict Response Instructions:
     }
   }
 
-  // 2. Perform Similarity Search with Scores (L2 distance) using contextualized searchQuery
+  // 2. Perform Similarity Search with Scores using contextualized searchQuery
   console.log(`[RAG] Step 2: Performing vector similarity search with score for query: "${searchQuery}"...`);
   let relevantChunks = [];
   try {
     relevantChunks = await searchSimilarChunksWithScore(searchQuery, userId, 6);
-    if ((!relevantChunks.length || (relevantChunks[0]?.score !== undefined && relevantChunks[0].score > DISTANCE_THRESHOLD)) && searchQuery !== question) {
+    if ((!relevantChunks.length || (relevantChunks[0]?.score !== undefined && relevantChunks[0].score < DISTANCE_THRESHOLD)) && searchQuery !== question) {
       console.log(`[RAG Memory] Query "${searchQuery}" yielded low confidence. Retrying with raw question "${question}"...`);
       const fallbackChunks = await searchSimilarChunksWithScore(question, userId, 6);
-      if (fallbackChunks.length && (fallbackChunks[0]?.score || 1) < (relevantChunks[0]?.score || 1)) {
+      if (fallbackChunks.length && (fallbackChunks[0]?.score || 0) > (relevantChunks[0]?.score || 0)) {
         relevantChunks = fallbackChunks;
       }
     }
@@ -547,7 +548,7 @@ Strict Response Instructions:
   // Confidence Gate Check:
   const topScore = relevantChunks[0]?.score;
   const isLowConfidence =
-    !relevantChunks.length || (topScore !== undefined && topScore > DISTANCE_THRESHOLD);
+    !relevantChunks.length || (topScore !== undefined && topScore < DISTANCE_THRESHOLD);
 
   if (isLowConfidence && !emailContext) {
     console.log(

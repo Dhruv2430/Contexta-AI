@@ -7,6 +7,7 @@ import {
   processDocumentForRAG,
   rebuildVectorStoreForUser,
 } from "../services/ragService.js";
+import { deleteDocumentFromVectorStore } from "../services/vectorService.js";
 
 // ---------------------------------------------------------------------------
 // Validate PDF file header
@@ -185,6 +186,7 @@ export const getDocuments = async (req, res) => {
 // Delete Document
 // ---------------------------------------------------------------------------
 export const deleteDocument = async (req, res) => {
+  console.log("[DEBUG] deleteDocument called for document:", req.params.id);
   try {
     const document = await Document.findById(
       req.params.id
@@ -221,13 +223,15 @@ export const deleteDocument = async (req, res) => {
     // Delete DB record
     await Document.findByIdAndDelete(req.params.id);
 
-    // Rebuild vector store
+    // Delete chunks directly from MongoDB Atlas vector store
     try {
-      await rebuildVectorStoreForUser(req.user._id);
-    } catch (ragError) {
-      console.warn(
-        "Vector rebuild failed:",
-        ragError.message
+      await deleteDocumentFromVectorStore(document._id, req.user._id);
+    } catch (vectorDeleteError) {
+      console.error(
+        "[DocumentController] Vector chunk deletion failed for document",
+        document._id.toString(),
+        ":",
+        vectorDeleteError.message
       );
     }
 
@@ -353,4 +357,5 @@ export const reindexDocument = async (req, res) => {
     });
   }
 };
+
 
