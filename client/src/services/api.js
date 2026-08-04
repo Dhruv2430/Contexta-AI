@@ -8,33 +8,38 @@ import axios from "axios";
 // - No global Content-Type — lets axios auto-detect (crucial for FormData)
 // ---------------------------------------------------------------------------
 const getBaseUrl = () => {
-  // If running locally in a browser, connect to the local backend on port 5001
-  if (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "[::1]"
-  ) {
-    return "http://localhost:5001/api";
-  }
+  let envUrl = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
 
-  let envUrl = import.meta.env.VITE_API_URL || "";
-  
-  // Strip trailing slashes
-  envUrl = envUrl.trim().replace(/\/+$/, "");
+  const hostname = window.location.hostname;
+  const isLocalHost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]" ||
+    /^192\.168\./.test(hostname) ||
+    /^10\./.test(hostname) ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+    hostname.endsWith(".local");
+
+  // In local development environment or local hostname, use local backend on port 5001 unless env explicitly specifies a non-render local URL
+  if (isLocalHost) {
+    if (envUrl && !envUrl.includes("onrender.com") && !envUrl.includes("vercel.app")) {
+      return envUrl.endsWith("/api") ? envUrl : `${envUrl}/api`;
+    }
+    const host = hostname === "localhost" || hostname.endsWith(".local") ? "localhost" : hostname;
+    return `http://${host}:5001/api`;
+  }
 
   if (envUrl) {
-    if (envUrl.endsWith("/api")) {
-      return envUrl;
-    }
-    return `${envUrl}/api`;
+    return envUrl.endsWith("/api") ? envUrl : `${envUrl}/api`;
   }
-  
+
   // In production, fallback to relative API prefix
   return "/api";
 };
 
 const api = axios.create({
-  baseURL: getBaseUrl()
+  baseURL: getBaseUrl(),
+  timeout: 40000, // 40s timeout to gracefully accommodate Render cold starts
 });
 
 // Attach token to every outgoing request (if it exists)

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 let messageCounter = 0;
 const nextId = () => `msg-${Date.now()}-${++messageCounter}`;
 
-const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] }) => {
+const ChatUI = ({ onSendMessage, title = "AI Assistant", initialWelcome, themeColor, initialMessages = [] }) => {
   const [messages, setMessages] = useState(() => {
     if (initialMessages.length > 0)
       return initialMessages.map((m) => ({ ...m, id: m.id || nextId() }));
@@ -13,7 +13,7 @@ const ChatUI = ({ onSendMessage, title = "AI Assistant", initialMessages = [] })
       {
         id: nextId(),
         role: "ai",
-        text: "Hello! I am your Contexta-AI assistant. Ask me anything about your uploaded knowledge base documents.",
+        text: initialWelcome || "Hello! I am your Contexta-AI assistant. Ask me anything about your uploaded knowledge base documents.",
         sources: [],
       },
     ];

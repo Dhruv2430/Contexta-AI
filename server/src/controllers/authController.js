@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User, { generateWidgetApiKey } from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 
 // ---------------------------------------------------------------------------
@@ -40,6 +40,8 @@ export const signup = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        widgetApiKey: user.widgetApiKey,
+        allowedDomains: user.allowedDomains,
       },
     });
   } catch (error) {
@@ -113,6 +115,8 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        widgetApiKey: user.widgetApiKey,
+        allowedDomains: user.allowedDomains,
       },
     });
   } catch (error) {
@@ -147,6 +151,15 @@ export const getMe = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        widgetApiKey: user.widgetApiKey,
+        allowedDomains: user.allowedDomains,
+        widgetSettings: user.widgetSettings || {
+          botName: "AI Assistant",
+          welcomeMessage: "Hi there! How can I help you today?",
+          themeColor: "#15803d",
+          position: "right",
+          strictMode: false,
+        },
       },
     });
   } catch (error) {
@@ -154,6 +167,141 @@ export const getMe = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error. Please try again later.",
+    });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// @desc    Rotate widget API key for authenticated company
+// @route   POST /api/auth/rotate-widget-key
+//          POST /api/auth/companies/:companyId/rotate-widget-key
+// @access  Private (requires valid JWT)
+// ---------------------------------------------------------------------------
+export const rotateWidgetKey = async (req, res) => {
+  try {
+    const targetId = req.params.companyId || req.user._id;
+
+    if (req.params.companyId && req.user._id.toString() !== req.params.companyId) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only rotate your own company widget key",
+      });
+    }
+
+    const user = await User.findById(targetId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User/Company not found" });
+    }
+
+    const newKey = generateWidgetApiKey();
+    user.widgetApiKey = newKey;
+    await user.save();
+
+    console.log(
+      `[Security Audit Log] Widget API key rotated for user/company ID: ${user._id} by user ID: ${req.user._id}`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Widget API key rotated successfully",
+      widgetApiKey: newKey,
+    });
+  } catch (error) {
+    console.error("Rotate widget key error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during key rotation",
+    });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// @desc    Update allowed domains for authenticated company
+// @route   PUT /api/auth/allowed-domains
+// @access  Private (requires valid JWT)
+// ---------------------------------------------------------------------------
+export const updateAllowedDomains = async (req, res) => {
+  try {
+    const { allowedDomains } = req.body;
+
+    if (!Array.isArray(allowedDomains)) {
+      return res.status(400).json({
+        success: false,
+        message: "allowedDomains must be an array of domain strings.",
+      });
+    }
+
+    // Normalize domains (lowercase, strip protocol, port, path, leading www)
+    const cleanedDomains = allowedDomains
+      .map((d) => {
+        if (typeof d !== "string") return "";
+        let clean = d.trim().toLowerCase();
+        clean = clean.replace(/^(https?:\/\/)?(www\.)?/, "");
+        clean = clean.split("/")[0].split(":")[0];
+        return clean;
+      })
+      .filter((d) => d.length > 0);
+
+    const uniqueDomains = [...new Set(cleanedDomains)];
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.allowedDomains = uniqueDomains;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Allowed domains updated successfully.",
+      allowedDomains: user.allowedDomains,
+    });
+  } catch (error) {
+    console.error("Update allowed domains error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update allowed domains.",
+    });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// @desc    Update widget branding & customization settings
+// @route   PUT /api/auth/widget-settings
+// @access  Private (requires valid JWT)
+// ---------------------------------------------------------------------------
+export const updateWidgetSettings = async (req, res) => {
+  try {
+    const { botName, welcomeMessage, themeColor, position, strictMode } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (!user.widgetSettings) {
+      user.widgetSettings = {};
+    }
+
+    if (typeof botName === "string") user.widgetSettings.botName = botName.trim();
+    if (typeof welcomeMessage === "string") user.widgetSettings.welcomeMessage = welcomeMessage.trim();
+    if (typeof themeColor === "string") user.widgetSettings.themeColor = themeColor.trim();
+    if (typeof position === "string") user.widgetSettings.position = position.trim();
+    if (typeof strictMode === "boolean") user.widgetSettings.strictMode = strictMode;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Widget settings updated successfully.",
+      widgetSettings: user.widgetSettings,
+    });
+  } catch (error) {
+    console.error("Update widget settings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update widget settings.",
     });
   }
 };

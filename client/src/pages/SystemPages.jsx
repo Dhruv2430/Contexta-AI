@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   AlertCircle,
   BarChart3,
@@ -706,10 +707,43 @@ export const WidgetEmbedPage = () => (
 export const SettingsPage = () => {
   const { user } = useAuth();
   const [copied, setCopied] = useState("");
+  const [apiKey, setApiKey] = useState(user?.widgetApiKey || "");
+  const [showKey, setShowKey] = useState(false);
+  const [domains, setDomains] = useState(user?.allowedDomains || []);
+  const [newDomain, setNewDomain] = useState("");
+  const [savingDomains, setSavingDomains] = useState(false);
+  const [rotatingKey, setRotatingKey] = useState(false);
+  const [feedback, setFeedback] = useState({ message: "", error: false });
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-  const widgetUrl = `${origin}/widget/${user?.id || user?._id || "YOUR_COMPANY_ID"}`;
+  const [botName, setBotName] = useState(user?.widgetSettings?.botName || "AI Assistant");
+  const [welcomeMessage, setWelcomeMessage] = useState(user?.widgetSettings?.welcomeMessage || "Hi there! How can I help you today?");
+  const [themeColor, setThemeColor] = useState(user?.widgetSettings?.themeColor || "#15803d");
+  const [position, setPosition] = useState(user?.widgetSettings?.position || "right");
+  const [strictMode, setStrictMode] = useState(user?.widgetSettings?.strictMode || false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Refresh profile from /auth/me
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        if (res.data?.user) {
+          if (res.data.user.widgetApiKey) setApiKey(res.data.user.widgetApiKey);
+          if (Array.isArray(res.data.user.allowedDomains)) setDomains(res.data.user.allowedDomains);
+          if (res.data.user.widgetSettings) {
+            setBotName(res.data.user.widgetSettings.botName || "AI Assistant");
+            setWelcomeMessage(res.data.user.widgetSettings.welcomeMessage || "Hi there! How can I help you today?");
+            setThemeColor(res.data.user.widgetSettings.themeColor || "#15803d");
+            setPosition(res.data.user.widgetSettings.position || "right");
+            setStrictMode(Boolean(res.data.user.widgetSettings.strictMode));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load user profile", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const copy = async (value, type) => {
     await navigator.clipboard.writeText(value);
@@ -717,33 +751,308 @@ export const SettingsPage = () => {
     setTimeout(() => setCopied(""), 1500);
   };
 
+  const cleanDomainString = (raw) => {
+    if (typeof raw !== "string") return "";
+    let clean = raw.trim().toLowerCase();
+    clean = clean.replace(/^(https?:\/\/)?(www\.)?/, "");
+    clean = clean.split("/")[0].split(":")[0];
+    return clean;
+  };
+
+  const handleAddDomain = (e, domainToAdd = newDomain) => {
+    e?.preventDefault();
+    const clean = cleanDomainString(domainToAdd);
+    if (clean && !domains.includes(clean)) {
+      setDomains((prev) => [...prev, clean]);
+    }
+    setNewDomain("");
+  };
+
+  const handleRemoveDomain = (domainToRemove) => {
+    setDomains(domains.filter((d) => d !== domainToRemove));
+  };
+
+  const handleSelectSuggestion = (suggestedDomain) => {
+    handleAddDomain(null, suggestedDomain);
+  };
+
+  const handleSaveDomains = async () => {
+    try {
+      setSavingDomains(true);
+      setFeedback({ message: "", error: false });
+
+      // Automatically include any pending domain typed in the text box before saving
+      let targetDomains = [...domains];
+      if (newDomain.trim()) {
+        const clean = cleanDomainString(newDomain);
+        if (clean && !targetDomains.includes(clean)) {
+          targetDomains.push(clean);
+        }
+        setNewDomain("");
+      }
+
+      const res = await api.put("/auth/allowed-domains", { allowedDomains: targetDomains });
+      setDomains(res.data.allowedDomains);
+      setFeedback({ message: "Allowed domains updated successfully!", error: false });
+    } catch (err) {
+      setFeedback({ message: err.response?.data?.message || "Failed to update domains.", error: true });
+    } finally {
+      setSavingDomains(false);
+    }
+  };
+
+  const handleSaveWidgetSettings = async () => {
+    try {
+      setSavingSettings(true);
+      setFeedback({ message: "", error: false });
+      const res = await api.put("/auth/widget-settings", {
+        botName,
+        welcomeMessage,
+        themeColor,
+        position,
+        strictMode,
+      });
+      setFeedback({ message: "Widget customization saved successfully!", error: false });
+    } catch (err) {
+      setFeedback({ message: err.response?.data?.message || "Failed to save widget customization.", error: true });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleRotateKey = async () => {
+    if (!window.confirm("Are you sure you want to rotate your Widget API Key? Any existing widgets using the old key will be invalidated immediately.")) {
+      return;
+    }
+
+    try {
+      setRotatingKey(true);
+      setFeedback({ message: "", error: false });
+      const res = await api.post("/auth/rotate-widget-key");
+      setApiKey(res.data.widgetApiKey);
+      setFeedback({ message: "Widget API Key rotated successfully!", error: false });
+    } catch (err) {
+      setFeedback({ message: err.response?.data?.message || "Failed to rotate API key.", error: true });
+    } finally {
+      setRotatingKey(false);
+    }
+  };
+
   return (
-    <PageShell active="Settings" title="Settings" subtitle="Local application endpoints and environment URLs.">
-      <section className="card p-6 text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in">
-        <Server className="w-5 h-5 text-forest-600 mb-4" />
-        <h2 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Local App URLs</h2>
-        <div className="mt-5 space-y-3">
-          {[
-            { label: "Frontend", value: origin, type: "frontend" },
-            { label: "Backend API", value: apiUrl, type: "api" },
-            { label: "Widget URL", value: widgetUrl, type: "widget" },
-          ].map((item) => (
-            <div key={item.type} className="flex flex-col lg:flex-row lg:items-center gap-3 rounded-lg border border-slate-200/60 bg-slate-50/30 p-3 hover:border-forest-500 transition-colors shadow-sm">
-              <div className="lg:w-32 shrink-0">
-                <p className="text-[10px] font-semibold text-slate-500 uppercase">{item.label}</p>
-              </div>
-              <code className="flex-1 overflow-x-auto text-xs text-slate-800 font-mono">{item.value}</code>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => copy(item.value, item.type)} className="btn-secondary px-3 py-1.5 text-xs shadow-sm">
-                  {copied === item.type ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied === item.type ? "Copied" : "Copy"}
+    <PageShell active="Settings" title="Settings" subtitle="Configure widget security, domain authorization, branding customization, and AI RAG controls.">
+      {feedback.message && (
+        <div className={`p-4 rounded-lg text-xs font-medium border flex items-center justify-between ${feedback.error ? "bg-red-50 border-red-200 text-red-600" : "bg-emerald-50 border-emerald-200 text-emerald-700"}`}>
+          <span>{feedback.message}</span>
+          <button type="button" onClick={() => setFeedback({ message: "", error: false })} className="text-xs font-bold underline cursor-pointer">Dismiss</button>
+        </div>
+      )}
+
+      {/* Widget Security Section */}
+      <section className="card p-6 text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in space-y-6">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <Shield className="w-5 h-5 text-forest-600" />
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 font-display">Widget Security & Authorization</h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Control which web domains are permitted to load and execute your chat widget.</p>
+          </div>
+        </div>
+
+        {/* Allowed Hostnames / Domains */}
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Allowed Hostnames / Domains</label>
+          
+          <div className="flex flex-wrap gap-2 mb-4 p-3 rounded-lg border border-slate-200/60 bg-slate-50/50 min-h-12 items-center">
+            {domains.length === 0 ? (
+              <p className="text-xs text-amber-600 font-medium">⚠️ No domains authorized! Widget requests are currently blocked on all domains by default.</p>
+            ) : (
+              domains.map((domain) => (
+                <span key={domain} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-white border border-slate-200 text-slate-800 shadow-xs">
+                  {domain}
+                  <button type="button" onClick={() => handleRemoveDomain(domain)} className="text-slate-400 hover:text-red-600 transition-colors font-bold text-sm leading-none ml-1 cursor-pointer">
+                    &times;
+                  </button>
+                </span>
+              ))
+            )}
+          </div>
+
+          <form onSubmit={handleAddDomain} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={newDomain}
+              onChange={(e) => setNewDomain(e.target.value)}
+              placeholder="e.g. example.com, app.mydomain.com, localhost"
+              className="input-field flex-1 px-3 py-2 text-xs placeholder-slate-400 bg-white"
+            />
+            <button type="submit" className="btn-secondary px-4 py-2 text-xs font-semibold cursor-pointer">
+              + Add Domain
+            </button>
+          </form>
+
+          {/* Domain Formatting & Suggestions */}
+          <div className="mb-5 space-y-2">
+            <p className="text-[11px] text-slate-400 font-medium">
+              💡 <strong>Formatting Guide:</strong> Enter bare hostnames only (no <code>https://</code>, <code>www.</code>, or paths).
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 font-medium">
+              <span className="text-[11px] text-slate-400 font-semibold">Click to suggest:</span>
+              {["localhost", "127.0.0.1", "example.com", "app.example.com"].map((sug) => (
+                <button
+                  key={sug}
+                  type="button"
+                  onClick={() => handleSelectSuggestion(sug)}
+                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-100 hover:bg-forest-50 hover:text-forest-700 text-slate-600 border border-slate-200 transition-colors cursor-pointer"
+                >
+                  {sug}
                 </button>
-                <button type="button" onClick={() => window.open(item.value, "_blank", "noopener,noreferrer")} className="btn-secondary px-3 py-1.5 text-xs shadow-sm">
-                  Open
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSaveDomains}
+            disabled={savingDomains}
+            className="btn-forest px-5 py-2 text-xs font-bold shadow-md shadow-forest-100 flex items-center gap-2 cursor-pointer"
+          >
+            {savingDomains ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <CheckCircle className="w-4 h-4 text-white" />}
+            Save Allowed Domains
+          </button>
+        </div>
+
+        <hr className="border-slate-100" />
+
+        {/* Widget API Key */}
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Widget API Key</label>
+          <p className="text-xs text-slate-500 mb-3 font-medium">This secret API key identifies your company workspace for widget requests.</p>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex-1 relative">
+              <code className="block w-full overflow-x-auto rounded-lg border border-slate-200/60 bg-slate-50 p-3 text-xs text-slate-800 font-mono shadow-inner">
+                {showKey ? apiKey : apiKey ? `${apiKey.slice(0, 12)}••••••••••••••••••••••••` : "Not assigned"}
+              </code>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowKey(!showKey)} className="btn-secondary px-3 py-2 text-xs shadow-sm cursor-pointer">
+                {showKey ? "Hide" : "Show"}
+              </button>
+              <button type="button" onClick={() => copy(apiKey, "apiKey")} className="btn-secondary px-3 py-2 text-xs shadow-sm cursor-pointer">
+                {copied === "apiKey" ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied === "apiKey" ? "Copied" : "Copy Key"}
+              </button>
+              <button type="button" onClick={handleRotateKey} disabled={rotatingKey} className="btn-secondary px-3 py-2 text-xs shadow-sm text-red-600 hover:bg-red-50 border-red-200 cursor-pointer">
+                {rotatingKey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
+                Rotate Key
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Widget Branding & Appearance Section */}
+      <section className="card p-6 text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in space-y-6">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <Settings className="w-5 h-5 text-forest-600" />
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 font-display">Widget Branding & Appearance</h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Customize the chatbot title, initial greeting message, theme color, and position.</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="text-xs font-semibold text-slate-700 block mb-1.5">Bot Display Name</label>
+            <input
+              type="text"
+              value={botName}
+              onChange={(e) => setBotName(e.target.value)}
+              placeholder="e.g. AI Customer Support"
+              className="input-field w-full px-3 py-2 text-xs bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-700 block mb-1.5">Widget Screen Position</label>
+            <select
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
+              className="input-field w-full px-3 py-2 text-xs bg-white cursor-pointer"
+            >
+              <option value="right">Bottom Right (Default)</option>
+              <option value="left">Bottom Left</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="text-xs font-semibold text-slate-700 block mb-1.5">Welcome Greeting Message</label>
+            <textarea
+              value={welcomeMessage}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              rows={2}
+              placeholder="e.g. Hi there! How can I help you today?"
+              className="input-field w-full px-3 py-2 text-xs bg-white"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="text-xs font-semibold text-slate-700 block mb-2">Accent Theme Color</label>
+            <div className="flex items-center gap-3">
+              {[
+                { name: "Forest Green", hex: "#15803d" },
+                { name: "Slate Dark", hex: "#0f172a" },
+                { name: "Indigo Blue", hex: "#4338ca" },
+                { name: "Teal Modern", hex: "#0f766e" },
+              ].map((c) => (
+                <button
+                  key={c.hex}
+                  type="button"
+                  onClick={() => setThemeColor(c.hex)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
+                    themeColor === c.hex ? "border-forest-600 bg-forest-50/50 ring-2 ring-forest-500/20" : "border-slate-200 bg-white"
+                  }`}
+                >
+                  <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: c.hex }} />
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSaveWidgetSettings}
+          disabled={savingSettings}
+          className="btn-forest px-5 py-2 text-xs font-bold shadow-md shadow-forest-100 flex items-center gap-2 cursor-pointer"
+        >
+          {savingSettings ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <CheckCircle className="w-4 h-4 text-white" />}
+          Save Widget Customization
+        </button>
+      </section>
+
+      {/* AI Behavior & RAG Controls */}
+      <section className="card p-6 text-left bg-white border border-slate-200/60 shadow-sm animate-fade-in space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <Zap className="w-5 h-5 text-forest-600" />
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 font-display">AI Behavior & RAG Controls</h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Manage response strictness and document grounding preferences.</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200/60 bg-slate-50/30">
+          <div>
+            <p className="text-xs font-bold text-slate-800">Strict Knowledge Base Grounding</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">When enabled, the AI strictly refuses to answer questions that are not grounded in your uploaded documents.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStrictMode(!strictMode)}
+            className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${strictMode ? "bg-forest-600" : "bg-slate-300"}`}
+          >
+            <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${strictMode ? "right-1" : "left-1"}`} />
+          </button>
         </div>
       </section>
     </PageShell>

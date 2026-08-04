@@ -11,40 +11,73 @@ import chatRoutes from "./routes/chatRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import systemRoutes from "./routes/systemRoutes.js";
 import gapRoutes from "./routes/gapRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
-// ESM doesn't have __dirname, so we derive it
+// ESM __dirname resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
 // ---------------------------------------------------------------------------
-// Security Middleware
+// 1. Trust Proxy (Required for Render & express-rate-limit reverse proxies)
 // ---------------------------------------------------------------------------
-// Helmet sets secure HTTP headers (X-Content-Type-Options, HSTS, etc.)
+app.set("trust proxy", 1);
+
+// ---------------------------------------------------------------------------
+// 2. Helmet Security Headers
+// ---------------------------------------------------------------------------
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
-// CORS: restrict origins in production, allow all in dev
-const ALWAYS_ALLOWED = ["http://localhost:5173", "http://localhost:5174"];
+// ---------------------------------------------------------------------------
+// 3. CORS Configuration
+// ---------------------------------------------------------------------------
+const ALLOWED_ORIGINS = [
+  "https://contextaai.me",
+  "https://www.contextaai.me",
+  "https://contexta-ai-nine.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  ...config.corsOrigins,
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!config.isProduction) return callback(null, true);
-    if (!origin) return callback(null, true);
-    if (ALWAYS_ALLOWED.includes(origin)) return callback(null, true);
-    if (config.corsOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    // Allow requests with no origin (e.g. Postman, cURL, server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
-app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/chat/widget")) {
+    return next(); // Handled dynamically per-company in widgetCors middleware
+  }
+  cors(corsOptions)(req, res, next);
+});
 
 // ---------------------------------------------------------------------------
-// Rate Limiting
+// 4. Core Body Parsing Middleware
 // ---------------------------------------------------------------------------
-// General API rate limit
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(config.uploadsDir));
+
+// ---------------------------------------------------------------------------
+// 5. Rate Limiting Middleware (using trust proxy)
+// ---------------------------------------------------------------------------
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200,
@@ -54,7 +87,6 @@ const generalLimiter = rateLimit({
 });
 app.use("/api", generalLimiter);
 
-// Strict limit for auth endpoints (brute-force protection)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 15,
@@ -65,7 +97,6 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/signup", authLimiter);
 
-// AI/chat rate limit (quota protection)
 const chatLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 40,
@@ -73,28 +104,25 @@ const chatLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use("/api/chat", chatLimiter);
+app.use("/api/chat", (req, res, next) => {
+  if (req.path.startsWith("/widget")) {
+    return next();
+  }
+  chatLimiter(req, res, next);
+});
 
 // ---------------------------------------------------------------------------
-// Core Middleware
-// ---------------------------------------------------------------------------
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-// Serve uploaded files statically (optional — useful for future download feature)
-app.use("/uploads", express.static(config.uploadsDir));
-
-// ---------------------------------------------------------------------------
-// Health Check
+// Health Check Endpoint
 // ---------------------------------------------------------------------------
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Contexta-AI API Running" });
 });
 
 // ---------------------------------------------------------------------------
-// API Routes
+// 6. API Routes
 // ---------------------------------------------------------------------------
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/dashboard", dashboardRoutes);
@@ -102,9 +130,7 @@ app.use("/api/system", systemRoutes);
 app.use("/api/gaps", gapRoutes);
 
 // ---------------------------------------------------------------------------
-// Multer Error Handler
-// Multer throws specific errors for file size/type violations.
-// We catch them here to return clean error messages instead of 500s.
+// 7. Error Handlers
 // ---------------------------------------------------------------------------
 app.use((err, req, res, next) => {
   if (err.code === "LIMIT_FILE_SIZE") {
@@ -121,18 +147,14 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Fall through to generic error handler
   next(err);
 });
 
-// ---------------------------------------------------------------------------
-// Global Error Handler (catch-all for unhandled errors)
-// ---------------------------------------------------------------------------
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.stack);
-  res.status(500).json({
+  console.error("Unhandled error:", err.stack || err);
+  res.status(err.status || 500).json({
     success: false,
-    message: config.isProduction ? "Internal server error" : err.message,
+    message: err.message?.startsWith("CORS:") ? err.message : config.isProduction ? "Internal server error" : err.message,
   });
 });
 

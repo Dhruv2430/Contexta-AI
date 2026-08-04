@@ -30,7 +30,7 @@ const LoginPage = () => {
       console.error("Login request failed:", err);
       if (!err.response) {
         setError(
-          `Could not connect to the API server at ${api.defaults.baseURL}. Please verify your network or VITE_API_URL settings.`
+          `Could not connect to the API server at ${api.defaults.baseURL}. If running locally, ensure backend is running on port 5001. If using Render, free instances may take up to 60 seconds to spin up.`
         );
       } else {
         setError(err.response.data?.message || "Invalid credentials. Please try again.");

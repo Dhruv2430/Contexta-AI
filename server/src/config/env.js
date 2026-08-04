@@ -18,12 +18,19 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 // --- Required variables ---
-const REQUIRED = ["MONGODB_URI", "GEMINI_API", "JWT_SECRET"];
+const REQUIRED = ["MONGODB_URI", "GEMINI_API", "JWT_SECRET", "WIDGET_SESSION_SECRET"];
 
 const missing = REQUIRED.filter((key) => !process.env[key]);
 if (missing.length > 0) {
   console.error(
     `\n❌ Missing required environment variables:\n${missing.map((k) => `   • ${k}`).join("\n")}\n\nCreate a server/.env file using .env.example as a template.\n`
+  );
+  process.exit(1);
+}
+
+if (process.env.WIDGET_SESSION_SECRET === process.env.JWT_SECRET) {
+  console.error(
+    `\n❌ Insecure environment configuration:\n   • WIDGET_SESSION_SECRET is required and must not reuse JWT_SECRET.\n`
   );
   process.exit(1);
 }
@@ -72,9 +79,18 @@ const config = {
   geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001",
   jwtSecret: process.env.JWT_SECRET,
   jwtExpire: process.env.JWT_EXPIRE || "7d",
+  widgetSessionSecret: process.env.WIDGET_SESSION_SECRET,
+  widgetSessionTtlMin: parseInt(process.env.WIDGET_SESSION_TTL_MIN, 10) || 45,
+  widgetRateLimitPerMin: parseInt(process.env.WIDGET_RATE_LIMIT_PER_MIN, 10) || 20,
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
-    : ["http://localhost:5173"],
+    : [
+        "https://contextaai.me",
+        "https://www.contextaai.me",
+        "https://contexta-ai-nine.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:5174",
+      ],
   isProduction: process.env.NODE_ENV === "production",
   uploadsDir: resolvedUploads,
   faissDir: resolvedFaiss,

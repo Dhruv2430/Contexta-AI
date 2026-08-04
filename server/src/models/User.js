@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+import crypto from "crypto";
+
+export const generateWidgetApiKey = () => {
+  return `ctx_live_${crypto.randomBytes(16).toString("hex")}`;
+};
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -26,6 +32,24 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please provide a password"],
       minlength: [6, "Password must be at least 6 characters"],
       select: false, // Never return password in queries by default
+    },
+    widgetApiKey: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+      default: () => generateWidgetApiKey(),
+    },
+    allowedDomains: {
+      type: [String],
+      default: [],
+    },
+    widgetSettings: {
+      botName: { type: String, default: "AI Assistant" },
+      welcomeMessage: { type: String, default: "Hi there! How can I help you today?" },
+      themeColor: { type: String, default: "#15803d" },
+      position: { type: String, default: "right" },
+      strictMode: { type: Boolean, default: false },
     },
   },
   {
