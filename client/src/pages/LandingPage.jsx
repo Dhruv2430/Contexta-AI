@@ -399,6 +399,9 @@ const LandingPage = () => {
               <a href="#faq" className="hover:text-forest-600 transition-colors no-underline">
                 FAQ
               </a>
+              <Link to="/team" className="hover:text-forest-600 transition-colors no-underline">
+                Our Team
+              </Link>
             </div>
           </div>
 
@@ -1304,6 +1307,7 @@ const LandingPage = () => {
               <li><Link to="/widget-embed" className="hover:text-forest-600 transition-colors no-underline">Widget Embed</Link></li>
               <li><Link to="/rag-pipeline" className="hover:text-forest-600 transition-colors no-underline">Pipeline Config</Link></li>
               <li><Link to="/logs" className="hover:text-forest-600 transition-colors no-underline">System Logs</Link></li>
+              <li><Link to="/team" className="hover:text-forest-600 transition-colors no-underline">Our Team</Link></li>
             </ul>
           </div>
 
